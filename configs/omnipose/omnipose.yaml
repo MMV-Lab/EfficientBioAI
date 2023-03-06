@@ -1,0 +1,31 @@
+model:
+  model_name: omnipose
+  omnipose:
+    task: instance_seg
+    model_type: cyto2
+    config_path: "configs/omnipose/instanceseg_2d.yaml"
+data:
+  input_size: [2,224,224] 
+  dynamic_batch: [1,4,8]
+  io:
+    input_names: ['data']
+    output_names: ['convout','style']
+quantization:
+  toolbox: mqbench
+  backend: openvino
+  run_mode: fp32
+  extra_qconfig_dict: 
+    w_observer: EMAQuantileObserver
+    a_observer: EMAQuantileObserver
+    w_fakequantize: LearnableFakeQuantize
+    a_fakequantize: LearnableFakeQuantize
+    w_qscheme: 
+      bit: 8
+      symmetry: True
+      per_channel: False
+      pot_scale: False
+    a_qscheme: 
+      bit: 8
+      symmetry: True
+      per_channel: False
+      pot_scale: False

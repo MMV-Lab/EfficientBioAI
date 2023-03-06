@@ -1,0 +1,6 @@
+experiment/*
+data/*
+.vscode/
+**/__pycache__/
+**/*.pyc
+model/*

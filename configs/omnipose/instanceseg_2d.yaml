@@ -1,0 +1,13 @@
+data_path: "data/omnipose/in_house_data/im"
+mask_filter: '_masks'
+use_gpu: False
+omni: False
+dim: 2
+pretrained_model: "model/omnipose/cellpose_residual_on_style_on_concatenation_off_train_data_2023_01_10_10_16_20.395475"
+model_type: 'cyto2_omni'
+diameter: 30
+channels: [0,0]
+flow_threshold: 0.4
+cellprob_threshold: 0
+mask_threshold: -1
+
