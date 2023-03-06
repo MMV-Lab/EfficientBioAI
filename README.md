@@ -1,5 +1,11 @@
-# Quantization for Bioimage AI Tasks
-This project is the experiment part for the ongoing project: [Quantization: Make Bioimage AI Tasks more Eco-friendly](https://www.overleaf.com/project/63b40e9048624adf1e9a6bf0)  
+# EfficientBioAI
+This package mainly focus on the efficiency of BioImage AI tasks. For the moment we just implemented quantization algorithm.
+
+## Introduction:
+The whole project contains two parts: quantization and inference. In the quantization step, we quantize the pretrained model into int8 precision and transform them to the format suitable to the inference engine. The next step is to run the inference on the inference engine and do the analysis. The inference engine that we choose is `openvino` for intel CPU and `tensorrt` for nvidia GPU.   
+We support several popular bioimage AI tools like([mmv_im2im](https://github.com/MMV-Lab/mmv_im2im),[cellpose](https://github.com/MouseLand/cellpose)). Also user-defined pytorch models are supported.
+ 
+
 ## Structure of the code:
 ```bash
 ├── configs
@@ -27,8 +33,11 @@ This project is the experiment part for the ongoing project: [Quantization: Make
 ├── quantization.py
 └── utils.py
 ```
-The whole project contains two parts: quantization and inference. In the quantization step, we quantize the pretrained model into int8 precision and transform them to the format suitable to the inference engine. The next step is to run the inference on the inference engine and do the analysis.  
-The inference engine that we choose is `openvino` for intel CPU and `tensorrt` for nvidia GPU.  
+## Installation:
+### pip:
+
+### docker:(recommended)
+
 ## How to run it:
 Take mmv_im2im for example:
 - quantization:
@@ -44,7 +53,6 @@ python inference.py --config experiment/mmv_im2im/mmv_im2im.yaml
     ```bash
     benchmark_app -m ./path/to/mmv_im2im_deploy_model.xml -nstream 1 -data_shape [1,1,32,128,128] -api sync
     ```
-  - tensorrt:
+  - tensorrt: 
 
-## Run in docker:
-still in progress.
+Note that pretrained model and data should be placed in the `model` and `data` folders, respectively. You can download our mmv_im2im pretrained model from [nextcloud](). 
