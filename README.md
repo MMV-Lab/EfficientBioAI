@@ -5,6 +5,10 @@ This package mainly focus on the efficiency of BioImage AI tasks. For the moment
 The whole project contains two parts: quantization and inference. In the quantization step, we quantize the pretrained model into int8 precision and transform them to the format suitable to the inference engine. The next step is to run the inference on the inference engine and do the analysis. The inference engine that we choose is `openvino` for intel CPU and `tensorrt` for nvidia GPU.   
 We support several popular bioimage AI tools like([mmv_im2im](https://github.com/MMV-Lab/mmv_im2im),[cellpose](https://github.com/MouseLand/cellpose)). Also user-defined pytorch models are supported.
  
+## Installation:
+### pip:
+
+### docker:(recommended)
 
 ## Structure of the code:
 ```bash
@@ -33,10 +37,12 @@ We support several popular bioimage AI tools like([mmv_im2im](https://github.com
 ├── quantization.py
 └── utils.py
 ```
-## Installation:
-### pip:
+- The `configs` folder contains the configuration files for different models. You can modify the configuration files to fit your own models. 
+- The `parse_info` folder contains the parsing functions for different models. You can add your own parsing functions here. 
+- The `infer` folder contains the inference functions for different inference engines. You can add your own inference functions here. 
+- The `utils.py` contains some useful functions. 
+- The `onnx2trt.py` is used to convert onnx model to tensorrt model.
 
-### docker:(recommended)
 
 ## How to run it:
 Take mmv_im2im for example:
@@ -55,4 +61,4 @@ python inference.py --config experiment/mmv_im2im/mmv_im2im.yaml
     ```
   - tensorrt: 
 
-Note that pretrained model and data should be placed in the `model` and `data` folders, respectively. You can download our mmv_im2im pretrained model from [nextcloud](). 
+Note that pretrained model and data should be placed in the `model` and `data` folders, respectively. You can download our mmv_im2im pretrained model from [nextcloud](). All the intermediate files will be saved in the `experiment` folder. 
