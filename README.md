@@ -9,6 +9,23 @@ We support several popular bioimage AI tools like([mmv_im2im](https://github.com
 ### pip:
 
 ### docker:(recommended)
+We use different docker images for both cpu and gpu. Assume that you are in the root directory of the project.
+- for CPU:
+```bash
+cd docker/cpu
+bash install.sh # if not install docker, run this command first
+bash build_docker.sh # build the docker image
+cd ../..
+bash docker/cpu/run_container.sh #run the docker container
+```
+- for GPU:
+```bash
+cd docker/gpu
+bash install.sh # if not install docker, run this command first
+bash build_docker.sh # build the docker image
+cd ../..
+bash docker/gpu/run_container.sh #run the docker container
+```
 
 ## Structure of the code:
 ```bash
