@@ -137,6 +137,7 @@ class OmniposeInfer():
               savedir = self.base_path,
               save_txt=False, # save txt outlines for ImageJ
               save_flows=False, # save flows as TIFFs
+              tif=True
               )
         threshold = [0.5, 0.75, 0.9]
         ap,tp,fp,fn = metrics.average_precision(self.test_masks, self.masks, threshold=threshold)    
