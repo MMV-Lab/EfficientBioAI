@@ -13,7 +13,7 @@ data:
 quantization:
   toolbox: mqbench
   backend: openvino
-  run_mode: fp32
+  run_mode: int8
   extra_qconfig_dict: 
     w_observer: EMAQuantileObserver
     a_observer: EMAQuantileObserver
