@@ -34,6 +34,7 @@ from mmv_im2im.data_modules import get_data_module
 from mmv_im2im.utils.misc import generate_test_dataset_dict, parse_config
 from mmv_im2im.utils.for_transform import parse_monai_ops_vanilla
 
+from typing import Any, Dict, List, Optional, Tuple, Union, Sequence
 
 
 def trt_version():
@@ -100,7 +101,15 @@ class TRTModule(torch.nn.Module):
         return outputs[0] if len(outputs) == 1 else reversed(outputs)
 
 
-def create_trt_model(trt_path):
+def create_trt_model(trt_path: str) -> TRTModule:
+    """create tensorrt model by reading the serialized engine.
+
+    Args:
+        trt_path (str): path of the serialized engine.
+
+    Returns:
+        TRTModule: TRTModule defined before. 
+    """
     with open(trt_path, "rb") as f, trt.Runtime(logger) as runtime:
         engine=runtime.deserialize_cuda_engine(f.read())
     input_name = []
@@ -119,8 +128,9 @@ def create_trt_model(trt_path):
     return trt_model
 
 class OmniposeInfer():
-    
-    def __init__(self, config_yml) -> None: #define the model
+    """OmniposeInfer is a class for inference of Omnipose/Cellpose model.
+    """
+    def __init__(self, config_yml: Dict) -> None: #define the model
         configure = Dict2ObjParser(config_yml).parse()
         model_name = configure.model.model_name
         cfg_path = configure.model.omnipose.config_path
@@ -139,6 +149,10 @@ class OmniposeInfer():
         self.device = torch.device("cuda" if self.cfg.use_gpu else "cpu")
 
     def prepare_data(self):
+        """
+        prepare data for inference. 
+        """
+        #TODO: now the data structure is hard coded, need to be changed.
         self.files = io.get_image_files(os.path.join(self.data_dir,'im'), '_masks')
         mask_files = io.get_image_files(os.path.join(self.data_dir,'gt'), '_masks')
         self.images = [io.imread(f) for f in self.files] 
@@ -147,6 +161,9 @@ class OmniposeInfer():
         self.test_masks = [io.imread(f).astype(np.uint16) for f in mask_files]
                
     def save_result(self):
+        """
+        save the result of inference. Print the ap as well.
+        """
         io.save_masks(self.images, 
               self.masks, 
               self.flows, 
@@ -160,7 +177,12 @@ class OmniposeInfer():
         print(ap)
    
     
-    def calculate_infer_time(self,num):
+    def calculate_infer_time(self, num: int):
+        """calculating inference time using only patches, not the whole image. circulate num times, take the average.
+
+        Args:
+            num (int): number of patches to be inferenced.
+        """
         infer_time = AverageMeter()
         infer_data = [torch.randn(1,*self.input_size,device = self.device) for _ in range(num)]
         for x in infer_data:
@@ -170,7 +192,15 @@ class OmniposeInfer():
         avg_infer_time = infer_time.avg
         print(f"average inference time is {avg_infer_time:.3f}")
     
-    def calculate_energy(self,num): # the cpu/gpu energy consumed by the class.
+    def calculate_energy(self, num: int): # the cpu/gpu energy consumed by the class.
+        """calculate energy consumption using only patches, not the whole image. circulate num times, take the average. The value is based on codecarbon package.
+
+        Args:
+            num (int): number of patches to be inferenced.
+
+        Returns:
+            float: carbon dioxide emission in grams
+        """
         infer_data = [torch.randn(1,*self.input_size,device = self.device) for _ in range(num)]
         self.model.net.to(self.device)
         tracker = EmissionsTracker(measure_power_secs = 1,
@@ -200,8 +230,10 @@ class OmniposeInfer():
         self.save_result()
 
 class Mmv_im2imInfer():
-    
-    def __init__(self, config_yml) -> None: #define the model
+    """
+    inference class for mmv_im2im model
+    """
+    def __init__(self, config_yml: Dict) -> None: #define the model
         configure = Dict2ObjParser(config_yml).parse()
         model_name = configure.model.model_name
         cfg_path = configure.model.mmv_im2im.config_path
@@ -234,7 +266,14 @@ class Mmv_im2imInfer():
             # load preprocessing transformation
             self.pre_process = parse_monai_ops_vanilla(self.data_cfg.preprocess)
     
-    def save_result(self,pred,out_fn):
+    def save_result(self, pred: np.ndarray, out_fn) -> None:
+        """save the result of one predicted image.
+
+        Args:
+            pred (np.ndarray): predicted np image
+            out_fn (_type_): specify the output file name and path
+
+        """
         if out_fn.suffix == ".npy":
                     np.save(out_fn, pred)
         else:
@@ -302,7 +341,25 @@ class Mmv_im2imInfer():
         return x
     
      
-    def evaluate(self,pred_dir,gt_dir,pred_data_type,gt_data_type,metric):
+    def evaluate(self,
+                 pred_dir: str,
+                 gt_dir: str,
+                 pred_data_type: str,
+                 gt_data_type: str,
+                 metric: Sequence[str]) -> None:
+        """evaluation for mmv_im2im related tasks. Need to specify data location and data type.
+
+        Args:
+            pred_dir (str): location of the prediction
+            gt_dir (str): location of the ground truth
+            pred_data_type (str): prediction data type
+            gt_data_type (str): ground truth data type
+            metric (Sequence[str]): evaluation metrics.Currently support:
+                1. SSIM for labelfree transformation
+                2. Dice for semantic segmentation
+                3. Pearson correlation for labelfree transformation
+        """
+        
         metric_table = dict(SSIM = StructuralSimilarityIndexMeasure(),
                         Dice = Dice(average='micro',ignore_index=0),
                         Pearson = PearsonCorrCoef())
@@ -344,7 +401,12 @@ class Mmv_im2imInfer():
             metric_summary[k] = score    
           
     
-    def calculate_infer_time(self,num): #only a slice, not the whole image. circulate num times, take the average.
+    def calculate_infer_time(self,num: int) -> None: 
+        """calculating inference time using only patches, not the whole image. circulate num times, take the average.
+
+        Args:
+            num (int): number of patches to be inferenced.
+        """
         infer_time = AverageMeter()
         infer_data = [torch.randn(1,*self.input_size,device = self.device) for _ in range(num)]
         for x in infer_data:
@@ -355,6 +417,14 @@ class Mmv_im2imInfer():
         print(f"average inference time is {avg_infer_time:.3f}")
 
     def calculate_energy(self,num: int) -> float:
+        """calculate energy consumption using only patches, not the whole image. circulate num times, take the average. The value is based on codecarbon package.
+
+        Args:
+            num (int): number of patches to be inferenced.
+
+        Returns:
+            float: carbon dioxide emission in grams
+        """
         infer_data = [torch.randn(1,*self.input_size,device = self.device) for _ in range(num)]
         self.model.to(self.device) 
         tracker = EmissionsTracker(measure_power_secs = 1,

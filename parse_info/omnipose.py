@@ -7,6 +7,11 @@ import os
 from .base import Parser
 
 class OmniposeParser(Parser):
+    """parse the omnipose model
+
+    Args:
+        Parser (_type_): base parser for the inherited parsers.
+    """
     def __init__(self,config):
         super().__init__(config)
         with open(self.meta_config.model.omnipose.config_path, "r") as stream:
@@ -18,6 +23,11 @@ class OmniposeParser(Parser):
         return self.cfg
 
     def parse_model(self):
+        """parse cellpose/omnipose model. read the pretrained model if it exists.
+
+        Returns:
+            model: _description_
+        """
         if self.args.pretrained_model != None and os.path.exists(self.args.pretrained_model):
             self.model = models.CellposeModel(gpu = self.args.use_gpu,
                                               pretrained_model = self.args.pretrained_model
@@ -43,7 +53,19 @@ class OmniposeParser(Parser):
         self.images = [img[:,:,0] for img in self.images]
         return self.images
         
-    def calibrate(self,model,calib_num): 
+    def calibrate(self,model,calib_num: int): 
+        """calibration step for the quantization to restore the precision.
+
+        Args:
+            model (_type_): model to be calibrated. Should be graph mode.
+            calib_num (int): number of images to be used for calibration
+
+        Raises:
+            ValueError: _description_
+
+        Returns:
+            model: returned calibrated model
+        """
         if calib_num <=0 or calib_num > len(self.images):
             raise ValueError('calibrate_num should be in range [1,{}]'.format(len(self.images)))
         model.eval( self.images[:calib_num], 

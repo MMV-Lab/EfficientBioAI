@@ -17,6 +17,11 @@ from monai.transforms import RandSpatialCropSamples
 from .base import Parser
 
 class Mmv_im2imParser(Parser):
+    """parse the mmv_im2im model
+
+    Args:
+        Parser (_type_): base parser for the inherited parsers.
+    """
     def __init__(self,config):
         super().__init__(config)
         self.cfg = parse_adaptor(config_class=ProgramConfig,config = self.meta_config.model.mmv_im2im.config_path)
@@ -60,7 +65,19 @@ class Mmv_im2imParser(Parser):
             # load preprocessing transformation
             self.pre_process = parse_monai_ops_vanilla(self.data_cfg.preprocess)
  
-    def calibrate(self,model,calib_num):
+    def calibrate(self,model,calib_num: int):
+        """calibration step for the quantization to restore the precision. for each image, we crop 6 patches and feed them into the model to get the output.
+
+        Args:
+            model (_type_): model to be calibrated. Should be graph mode.
+            calib_num (int): number of images to be used for calibration
+
+        Raises:
+            ValueError: _description_
+
+        Returns:
+            model: returned calibrated model
+        """
         try:
             dataset = self.dataset_list[0:calib_num]
         except:
