@@ -37,43 +37,40 @@ from mmv_im2im.utils.for_transform import parse_monai_ops_vanilla
 
 from typing import Any, Dict, List, Optional, Tuple, Union, Sequence
 
-def create_model(opv_path):
+
+def create_opv_model(opv_path):
+    """create opv model
+
+    Args:
+        opv_path (_type_): _description_
+
+    Returns:
+        _type_: _description_
+        
+    Notes:
+        model: <class 'openvino.runtime.ie_api.CompiledModel'>
+        model.inputs: List(<class 'openvino.pyopenvino.ConstOutput'>) 
+            - get_shape()
+            - get_any_name()
+    """
     core = Core()
     config = {"PERFORMANCE_HINT": "THROUGHPUT"}
     model = core.compile_model(opv_path,'CPU',config)
-    '''
-    model: <class 'openvino.runtime.ie_api.CompiledModel'>
-    model.inputs: List(<class 'openvino.pyopenvino.ConstOutput'>) 
-        - get_shape()
-        - get_any_name()
-    '''
-    return model
+    input_names = [model.inputs[i].get_any_name() for i in range(len(model.inputs))]
+    output_names = [model.outputs[i].get_any_name() for i in range(len(model.outputs))]
+    opv_model = OPVModule(engine=model, input_names=input_names, output_names=output_names)
+    return opv_model
+    
 
-
-class OpenVINOModel(object): 
-    def __init__(self, model,config_yml):
-        configure = Dict2ObjParser(config_yml).parse()
-        model_name = configure.model.model_name
-        self._base_model = model
-        self._nets = {}
-        self._model_id = "default"
-        self.infer_path = config_yml['model'][model_name]['model_path']
-        self.input_names = configure.data.io.input_names
-        self.output_names = configure.data.io.output_names
-        self.exec_net = self._init_model()
-
-    def _init_model(self):
-        if self._model_id in self._nets:
-            return self._nets[self._model_id]
-                # Load a new instance of the model with updated weights
-        if self._model_id != "default":
-            self._base_model.load_model(self._model_id, device=None)
-        self.opv_model = create_model(self.infer_path)
-        infer_request = self.opv_model.create_infer_request()
-        self._nets[self._model_id] = infer_request
-        return infer_request
-
-    def __call__(self, inp):
+class OPVModule(torch.nn.Module):
+    def __init__(self, engine=None, input_names=None, output_names=None):
+        super(OPVModule, self).__init__()
+        self.engine = engine
+        self.exec_net = engine.create_infer_request()
+        self.input_names = input_names
+        self.output_names = output_names
+    
+    def forward(self,inp):
         batch_size = inp.shape[0]
         if batch_size > 1:
             output = {key:[] for key in self.output_names}
@@ -89,13 +86,8 @@ class OpenVINOModel(object):
             outs = {out.get_any_name(): value for out, value in outs.items()}
             outs = {key: torch.tensor(value) for key,value in outs.items()}
             return list(outs.values()) if len(outs.values())>1 else list(outs.values())[0]
-
-    def eval(self):
-        pass
     
-    def load_model(self, path, device):
-        self._model_id = path
-        return self
+
 
 class OmniposeInfer():
     """Inference class for Omnipose model
@@ -113,10 +105,10 @@ class OmniposeInfer():
         model = self.parser.parse_model()
         # model.mkldnn = False
         # model.net.mkldnn = False
-        model.net = OpenVINOModel(model.net,config_yml)
+
+        opv_model = create_opv_model(infer_path)
+        model.net = opv_model
         self.model = model
-        # net = OpenVINOModel(model.net,config_yml)
-        # self.model = net
         self.data_dir = self.cfg.data_path
         self.input_size = configure.data.input_size
         self.device = torch.device("cuda" if self.cfg.use_gpu else "cpu")
@@ -207,9 +199,9 @@ class Mmv_im2imInfer():
         cfg_path = configure.model.mmv_im2im.config_path
         self.base_path = os.path.split(cfg_path)[0]
         self.parser = Mmv_im2imParser(configure)
-        model = self.parser.parse_model()
-        net = OpenVINOModel(model.net,config_yml)
-        self.model = net
+        infer_path = configure.model.mmv_im2im.model_path
+        opv_model = create_opv_model(infer_path)
+        self.model = opv_model
         self.config = self.parser.config
         self.data_cfg = self.config.data
         self.model_cfg = self.config.model

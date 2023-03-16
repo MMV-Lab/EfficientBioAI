@@ -1,15 +1,4 @@
-from .openvino import OpenVINOModel
-from .tensorrt import TRTModule
+from .openvino import create_opv_model
+from .tensorrt import create_trt_model
 
-def create_model(opv_path):
-    core = Core()
-    config = {"PERFORMANCE_HINT": "THROUGHPUT"}
-    model = core.compile_model(opv_path,'CPU',config)
-    '''
-    model: <class 'openvino.runtime.ie_api.CompiledModel'>
-    model.inputs: List(<class 'openvino.pyopenvino.ConstOutput'>) 
-        - get_shape()
-        - get_any_name()
-    '''
-    return model
 
