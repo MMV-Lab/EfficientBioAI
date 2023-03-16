@@ -1,29 +1,21 @@
 import os
+import sys
 import time
 import glob
-import numpy as np
-import torch
 import yaml
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union, Sequence
+sys.path.append("..") 
+
+import torch
+import numpy as np
 from aicsimageio import AICSImage
 from aicsimageio.writers import OmeTiffWriter
 from skimage.io import imsave as save_rgb
-import tensorrt as trt
-from tifffile import imread, imsave
-from tqdm import tqdm
 from codecarbon import EmissionsTracker
 from torchmetrics import Dice, StructuralSimilarityIndexMeasure, PearsonCorrCoef
-from tqdm.contrib import tenumerate
-from codecarbon import track_emissions
-import tifffile 
 from monai.inferers import sliding_window_inference
-from utils import Dict2ObjParser,AverageMeter,timer
-from parse_info import Mmv_im2imParser, OmniposeParser
-
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-logger = trt.Logger(trt.Logger.INFO)
-
+from tqdm.contrib import tenumerate
 from mmv_im2im.configs.config_base import (
     ProgramConfig,
     parse_adaptor,
@@ -33,25 +25,39 @@ from mmv_im2im.data_modules import get_data_module
 from mmv_im2im.utils.misc import generate_test_dataset_dict, parse_config
 from mmv_im2im.utils.for_transform import parse_monai_ops_vanilla
 
+from utils import Dict2ObjParser,AverageMeter,timer
+from parse_info import Mmv_im2imParser
+from .backend import create_opv_model, create_trt_model
+
+create_model = dict(openvino = create_opv_model,
+                  tensorrt = create_trt_model)
+device = dict(openvino = torch.device('cpu'),
+              tensorrt = torch.device('cuda'))
+
+def check_device(backend):
+    if not torch.cuda.is_available() and backend == 'tensorrt':
+        raise ValueError('TensorRT backend requires CUDA to be available')
+    else:
+        print('Using {} backend, device checked!'.format(backend))
+
 class Mmv_im2imInfer():
-    
+    """Inference class for Mmv_im2im model
+    """
     def __init__(self, config_yml) -> None: #define the model
         configure = Dict2ObjParser(config_yml).parse()
-        model_name = configure.model.model_name
+        backend = configure.quantization.backend
+        check_device(backend)
         cfg_path = configure.model.mmv_im2im.config_path
         self.base_path = os.path.split(cfg_path)[0]
-        trt_path = os.path.join(self.base_path,model_name+'.trt')
-        trt_model = create_trt_model(trt_path)
         self.parser = Mmv_im2imParser(configure)
-        model = self.parser.parse_model()
-        model.net = trt_model
+        infer_path = configure.model.mmv_im2im.model_path
+        model = create_model[backend](infer_path)
         self.model = model
         self.config = self.parser.config
         self.data_cfg = self.config.data
         self.model_cfg = self.config.model
-        self.device = torch.device('cuda')
+        self.device = device[backend]
         self.input_size = configure.data.input_size
-        
         
     def prepare_data(self):
         self.dataset_list = generate_test_dataset_dict(
@@ -68,7 +74,7 @@ class Mmv_im2imInfer():
             # load preprocessing transformation
             self.pre_process = parse_monai_ops_vanilla(self.data_cfg.preprocess)
     
-    def save_result(self,pred,out_fn):
+    def save_result(self,pred: np.ndarray,out_fn) -> None:
         if out_fn.suffix == ".npy":
                     np.save(out_fn, pred)
         else:
@@ -122,8 +128,8 @@ class Mmv_im2imInfer():
                     dim_order="CZYX",
                 )
             else:
-                raise ValueError("error in prediction output shape") 
-  
+                raise ValueError("error in prediction output shape")
+    
     def process_one_image(self,ds):
         img = AICSImage(ds).reader.get_image_dask_data(
                     **self.data_cfg.inference_input.reader_params
@@ -134,16 +140,33 @@ class Mmv_im2imInfer():
         x = x.as_tensor().unsqueeze(0) #bczyx
         del img
         return x
-    
      
-    def evaluate(self,pred_dir,gt_dir,pred_data_type,gt_data_type,metric):
+    def evaluate(self,
+                 pred_dir: str,
+                 gt_dir: str,
+                 pred_data_type: str,
+                 gt_data_type: str,
+                 metric: Sequence[str]) -> None:
+        """evaluation for mmv_im2im related tasks. Need to specify data location and data type.
+
+        Args:
+            pred_dir (str): location of the prediction
+            gt_dir (str): location of the ground truth
+            pred_data_type (str): prediction data type
+            gt_data_type (str): ground truth data type
+            metric (Sequence[str]): evaluation metrics.Currently support:
+                1. SSIM for labelfree transformation
+                2. Dice for semantic segmentation
+                3. Pearson correlation for labelfree transformation
+        """
+        
         metric_table = dict(SSIM = StructuralSimilarityIndexMeasure(),
                         Dice = Dice(average='micro',ignore_index=0),
                         Pearson = PearsonCorrCoef())
         our_metric = {}
         for k in metric:
             try:
-                our_metric[k] = metric_table[k].to(torch.device('cpu'))
+                our_metric[k] = metric_table[k].to(torch.device('cpu')) #probably out of memory if use gpu
             except:
                 raise TypeError("metric %s is not supported" % metric) 
         #read gt/pred file in order. Suppose the file names are the same.
@@ -175,29 +198,40 @@ class Mmv_im2imInfer():
         for k,v in our_metric.items():
             score = v.compute()
             print(k + f" score is {score:.3f}")
-            metric_summary[k] = score    
-          
+            metric_summary[k] = score 
     
-    def calculate_infer_time(self,num): #only a slice, not the whole image. circulate num times, take the average.
+    def calculate_infer_time(self,num: int) -> None: 
+        """calculating inference time using only patches, not the whole image. circulate num times, take the average.
+
+        Args:
+            num (int): number of patches to be inferenced.
+        """
         infer_time = AverageMeter()
         infer_data = [torch.randn(1,*self.input_size,device = self.device) for _ in range(num)]
         for x in infer_data:
             end = time.time()
-            y_hat = self.model.net(x)
+            y_hat = self.model(x)
             infer_time.update(time.time()-end)
         avg_infer_time = infer_time.avg
         print(f"average inference time is {avg_infer_time:.3f}")
     
-    def calculate_energy(self,num): # the cpu/gpu energy consumed by the class.
+    def calculate_energy(self,num: int) -> float:
+        """calculate energy consumption using only patches, not the whole image. circulate num times, take the average. The value is based on codecarbon package.
+
+        Args:
+            num (int): number of patches to be inferenced.
+
+        Returns:
+            float: carbon dioxide emission in grams
+        """
         infer_data = [torch.randn(1,*self.input_size,device = self.device) for _ in range(num)]
-        self.model.net.to(self.device)
-        print(self.device)
         tracker = EmissionsTracker(measure_power_secs = 1,
-                                   output_dir = self.base_path)                             
+                               tracking_mode = 'process',
+                               output_dir = self.base_path)
         tracker.start()
         with torch.no_grad():
             for x in infer_data:
-                y_hat = self.model.net(x)
+                y_hat = self.model(x)
         emissions: float = tracker.stop()
         print(emissions)
         
@@ -227,7 +261,7 @@ class Mmv_im2imInfer():
                     y_hat = sliding_window_inference(
                         inputs=x,
                         predictor=self.model,
-                        device = torch.device('cpu'),
+                        device=torch.device("cpu"),
                         **self.model_cfg.model_extra["sliding_window_params"],
                     )
                 else:
@@ -236,7 +270,7 @@ class Mmv_im2imInfer():
                 pred = y_hat.squeeze(0).squeeze(0).numpy()
                 out_fn = (
                     Path(self.data_cfg.inference_output.path)
-                    / f"{fn_core}_{suffix}.tif" #need to add _{suffix} if input and output path are different.
+                    / f"{fn_core}.tif" #need to add _{suffix} if input and output path are different.
                 )
                 self.save_result(pred,out_fn)
         avg_infer_time = infer_time.avg
