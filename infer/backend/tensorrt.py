@@ -42,7 +42,6 @@ class TRTModule(torch.nn.Module):
         self.input_names = input_names
         self.output_names = output_names
 
-    @timer
     def forward(self, *inputs):
         batch_size = inputs[0].shape[0]
         bindings = [None] * (len(self.input_names) + len(self.output_names))
