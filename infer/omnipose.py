@@ -15,6 +15,7 @@ from torchmetrics import Dice, StructuralSimilarityIndexMeasure, PearsonCorrCoef
 from utils import Dict2ObjParser,AverageMeter,timer
 from parse_info import OmniposeParser
 from .backend import create_opv_model, create_trt_model
+from .base import BaseInfer
 
 create_model = dict(openvino = create_opv_model,
                   tensorrt = create_trt_model)
@@ -27,9 +28,10 @@ def check_device(backend):
     else:
         print('Using {} backend, device checked!'.format(backend))
 
-class OmniposeInfer():
+class OmniposeInfer(BaseInfer):
     
     def __init__(self, config_yml) -> None: #define the model
+        super().__init__()
         configure = Dict2ObjParser(config_yml).parse()
         model_name = configure.model.model_name
         backend = configure.quantization.backend
