@@ -36,16 +36,14 @@ class OmniposeInfer():
         check_device(backend)
         cfg_path = config_yml['model'][model_name]['config_path']
         self.base_path = os.path.split(cfg_path)[0]
-        with open(cfg_path, "r") as stream:
-            cfg_yml = yaml.safe_load(stream)
-            self.cfg = Dict2ObjParser(cfg_yml).parse()
         infer_path  = configure.model.omnipose.model_path
         self.parser = OmniposeParser(configure)
         model = self.parser.parse_model()
         model.mkldnn = False
         model.net = create_model[backend](infer_path)
         self.model = model
-        self.data_dir = self.cfg.data_path
+        self.config = self.parser.config
+        self.data_dir = self.config.data_path
         self.input_size = configure.data.input_size
         self.device = device[backend]
         
@@ -112,10 +110,10 @@ class OmniposeInfer():
     @timer
     def core_infer(self):
         masks, flows, _ = self.model.eval(self.images, 
-                                  channels=self.cfg.channels,
-                                  diameter=self.cfg.diameter,
-                                  flow_threshold=self.cfg.flow_threshold,
-                                  cellprob_threshold=self.cfg.cellprob_threshold,
+                                  channels=self.config.channels,
+                                  diameter=self.config.diameter,
+                                  flow_threshold=self.config.flow_threshold,
+                                  cellprob_threshold=self.config.cellprob_threshold,
                                   )
         self.masks = masks
         self.flows = flows

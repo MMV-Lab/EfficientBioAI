@@ -20,7 +20,7 @@ class OmniposeParser(Parser):
             
     @property
     def config(self):
-        return self.cfg
+        return self.args
 
     def parse_model(self):
         """parse cellpose/omnipose model. read the pretrained model if it exists.
