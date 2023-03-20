@@ -1,8 +1,50 @@
 from abc import ABC, abstractmethod
+import os
+import sys
+import time
+sys.path.append("..") 
+
+import torch
+from codecarbon import EmissionsTracker
+
+from .backend import create_opv_model, create_trt_model
+from parse_info import Mmv_im2imParser, OmniposeParser
+from utils import Dict2ObjParser, AverageMeter
+
+_CREATE_MODEL = dict(openvino = create_opv_model,
+                  tensorrt = create_trt_model)
+_DEVICE = dict(openvino = torch.device('cpu'),
+              tensorrt = torch.device('cuda'))
+_PARSER = dict(omnipose = OmniposeParser,
+              mmv_im2im = Mmv_im2imParser)
+
+def check_device(backend):
+    if not torch.cuda.is_available() and backend == 'tensorrt':
+        raise ValueError('TensorRT backend requires CUDA to be available')
+    else:
+        print('Using {} backend, device checked!'.format(backend))
 
 class BaseInfer():
-    def __init__(self) -> None:
-        pass
+    def __init__(self,config_yml) -> None:
+        '''
+        Initialize the base class for inference.
+            1. Parse the config file
+            2. Define and check the device
+            3. Create the inference network
+            4. Create the parser
+        '''
+        configure = Dict2ObjParser(config_yml).parse()
+        self.backend = config_yml['quantization']['backend']
+        check_device(self.backend)
+        self.device = _DEVICE[self.backend]
+        self.model_name = config_yml['model']['model_name']
+        cfg_path = config_yml['model'][self.model_name]['config_path']
+        self.base_path = os.path.split(cfg_path)[0]
+        infer_path = config_yml['model'][self.model_name]['model_path']
+        self.parser = _PARSER[self.model_name](configure)
+        self.network = _CREATE_MODEL[self.backend](infer_path)
+        self.config = self.parser.config
+        self.input_size = configure.data.input_size
         
     @abstractmethod
     def prepare_data(self):
@@ -21,9 +63,38 @@ class BaseInfer():
         pass
     
     @abstractmethod
-    def calculate_infer_time(self):
-        pass
+    def calculate_infer_time(self, num: int = 1000) -> None:
+        """calculating inference time using only patches, not the whole image. circulate num times, take the average.
+
+        Args:
+            num (int): number of patches to be inferenced.
+        """
+        infer_time = AverageMeter()
+        infer_data = [torch.randn(1,*self.input_size,device = self.device) for _ in range(num)]
+        for x in infer_data:
+            end = time.time()
+            y_hat = self.network(x)
+            infer_time.update(time.time()-end)
+        avg_infer_time = infer_time.avg
+        print(f"average inference time is {avg_infer_time:.3f}")
     
     @abstractmethod
-    def calculate_energy(self):
-        pass
+    def calculate_energy(self, num: int = 1000) -> float:
+        """calculate energy consumption using only patches, not the whole image. circulate num times, take the average. The value is based on codecarbon package.
+
+        Args:
+            num (int): number of patches to be inferenced.
+
+        Returns:
+            float: carbon dioxide emission in grams
+        """
+        infer_data = [torch.randn(1,*self.input_size,device = self.device) for _ in range(num)]
+        # self.model.net.to(self.device)
+        tracker = EmissionsTracker(measure_power_secs = 1,
+                                   output_dir = self.base_path)                             
+        tracker.start()
+        with torch.no_grad():
+            for x in infer_data:
+                y_hat = self.network(x)
+        emissions: float = tracker.stop()
+        print(emissions)

@@ -12,7 +12,6 @@ import numpy as np
 from aicsimageio import AICSImage
 from aicsimageio.writers import OmeTiffWriter
 from skimage.io import imsave as save_rgb
-from codecarbon import EmissionsTracker
 from torchmetrics import Dice, StructuralSimilarityIndexMeasure, PearsonCorrCoef
 from monai.inferers import sliding_window_inference
 from tqdm.contrib import tenumerate
@@ -25,41 +24,18 @@ from mmv_im2im.data_modules import get_data_module
 from mmv_im2im.utils.misc import generate_test_dataset_dict, parse_config
 from mmv_im2im.utils.for_transform import parse_monai_ops_vanilla
 
-from utils import Dict2ObjParser,AverageMeter,timer
-from parse_info import Mmv_im2imParser
-from .backend import create_opv_model, create_trt_model
+from utils import AverageMeter,timer
 from .base import BaseInfer
 
-create_model = dict(openvino = create_opv_model,
-                  tensorrt = create_trt_model)
-device = dict(openvino = torch.device('cpu'),
-              tensorrt = torch.device('cuda'))
-
-def check_device(backend):
-    if not torch.cuda.is_available() and backend == 'tensorrt':
-        raise ValueError('TensorRT backend requires CUDA to be available')
-    else:
-        print('Using {} backend, device checked!'.format(backend))
 
 class Mmv_im2imInfer(BaseInfer):
     """Inference class for Mmv_im2im model
     """
     def __init__(self, config_yml) -> None: #define the model
-        super().__init__()
-        configure = Dict2ObjParser(config_yml).parse()
-        backend = configure.quantization.backend
-        check_device(backend)
-        cfg_path = configure.model.mmv_im2im.config_path
-        self.base_path = os.path.split(cfg_path)[0]
-        self.parser = Mmv_im2imParser(configure)
-        infer_path = configure.model.mmv_im2im.model_path
-        model = create_model[backend](infer_path)
-        self.model = model
-        self.config = self.parser.config
+        super().__init__(config_yml)
+        self.model = self.network
         self.data_cfg = self.config.data
         self.model_cfg = self.config.model
-        self.device = device[backend]
-        self.input_size = configure.data.input_size
         
     def prepare_data(self):
         self.dataset_list = generate_test_dataset_dict(
@@ -201,41 +177,6 @@ class Mmv_im2imInfer(BaseInfer):
             score = v.compute()
             print(k + f" score is {score:.3f}")
             metric_summary[k] = score 
-    
-    def calculate_infer_time(self,num: int) -> None: 
-        """calculating inference time using only patches, not the whole image. circulate num times, take the average.
-
-        Args:
-            num (int): number of patches to be inferenced.
-        """
-        infer_time = AverageMeter()
-        infer_data = [torch.randn(1,*self.input_size,device = self.device) for _ in range(num)]
-        for x in infer_data:
-            end = time.time()
-            y_hat = self.model(x)
-            infer_time.update(time.time()-end)
-        avg_infer_time = infer_time.avg
-        print(f"average inference time is {avg_infer_time:.3f}")
-    
-    def calculate_energy(self,num: int) -> float:
-        """calculate energy consumption using only patches, not the whole image. circulate num times, take the average. The value is based on codecarbon package.
-
-        Args:
-            num (int): number of patches to be inferenced.
-
-        Returns:
-            float: carbon dioxide emission in grams
-        """
-        infer_data = [torch.randn(1,*self.input_size,device = self.device) for _ in range(num)]
-        tracker = EmissionsTracker(measure_power_secs = 1,
-                               tracking_mode = 'process',
-                               output_dir = self.base_path)
-        tracker.start()
-        with torch.no_grad():
-            for x in infer_data:
-                y_hat = self.model(x)
-        emissions: float = tracker.stop()
-        print(emissions)
         
     def run_infer(self):
         self.prepare_data()
