@@ -28,21 +28,24 @@ class OmniposeParser(BaseParser):
         Returns:
             model: _description_
         """
+        use_gpu = self.meta_config.quantization.backend == 'tensorrt' and torch.cuda.is_available()
+        self.device = torch.device('cuda' if use_gpu else 'cpu')
         if self.args.pretrained_model != None and os.path.exists(self.args.pretrained_model):
-            self.model = models.CellposeModel(gpu = self.args.use_gpu,
-                                              pretrained_model = self.args.pretrained_model
+            self.model = models.CellposeModel(gpu = use_gpu,
+                                              pretrained_model = self.args.pretrained_model,
+                                              device = self.device,
                                              )
             self.model.net.load_model(self.args.pretrained_model, 
                                     #   cpu=not self.args.use_gpu,
-                                      device =  torch.device('cuda' if self.args.use_gpu else 'cpu'),
+                                      device = self.device,
                                       )
         else:
-            self.model = models.CellposeModel(gpu=self.args.use_gpu,
-                                              model_type=self.args.model_type,
+            self.model = models.CellposeModel(gpu = use_gpu,
+                                              model_type = self.args.model_type,
                                               # omni=self.args.omni,
-                                              dim=self.args.dim
+                                              dim = self.args.dim
                                             )
-        self.model.mkldnn = False #use openvino backend instead of mkldnn
+        self.model.mkldnn = False #use openvino/tensorrt backend instead of mkldnn
         self.model.net.mkldnn = False
         return self.model
     
@@ -50,7 +53,7 @@ class OmniposeParser(BaseParser):
         files = io.get_image_files(self.args.data_path,mask_filter = '_masks')
         self.images = [io.imread(f) for f in files]
         # just for in house data:
-        self.images = [img[:,:,0] for img in self.images]
+        self.images = [img[:,:,0] for img in self.images] #only extract red channel
         return self.images
         
     def calibrate(self,model,calib_num: int): 
@@ -68,6 +71,7 @@ class OmniposeParser(BaseParser):
         """
         if calib_num <=0 or calib_num > len(self.images):
             raise ValueError('calibrate_num should be in range [1,{}]'.format(len(self.images)))
+        model.net.to(self.device) #noted here Graphmodule object runs 1 time slower on gpu.
         model.eval( self.images[:calib_num], 
                     channels=self.args.channels,
                     diameter=self.args.diameter,

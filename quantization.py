@@ -64,6 +64,7 @@ def main():
         model.net = prepare_by_platform(model.net, backend,extra_config) # trace model and add quant nodes for model on backend
         enable_calibration(model.net) # turn on calibration, ready for gathering data
         model = parser.calibrate(model,calib_num=4)
+        print(f"=============={model.device}==============")
         enable_quantization(model.net) # turn on actually quantization, ready for simulating Backend inference
         
         extra_kwargs = dict(input_names=data_cfg.io.input_names, output_names=data_cfg.io.output_names, dynamic_axes = dynamic_axes)

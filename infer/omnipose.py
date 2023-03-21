@@ -24,29 +24,17 @@ class OmniposeInfer(BaseInfer):
         self.model = model
         self.data_dir = self.config.data_path
         
-    def prepare_data(self):
-        self.files = io.get_image_files(os.path.join(self.data_dir,'im'), '_masks')
-        mask_files = io.get_image_files(os.path.join(self.data_dir,'gt'), '_masks')
-        images = [io.imread(f) for f in self.files] 
-        # just for in house data:
-        
-        self.images = [img[:,:,0] for img in images]
-        self.test_masks = [io.imread(f).astype(np.uint16) for f in mask_files]
-        
-        
-    def save_result(self):
-        io.save_masks(self.images, 
-              self.masks, 
-              self.flows, 
-              self.files, 
-              savedir = self.base_path,
-              save_txt=False, # save txt outlines for ImageJ
-              save_flows=False, # save flows as TIFFs
-              tif=True
-              )
-        threshold = [0.5, 0.75, 0.9]
-        ap,tp,fp,fn = metrics.average_precision(self.test_masks, self.masks, threshold=threshold)    
-        print(ap)
+    def prepare_data(self):    
+        output = io.load_images_labels(tdir = self.data_dir,
+                              image_filter = self.config.image_filter,
+                              mask_filter = self.config.mask_filter,)
+        self.images, self.masks, self.files = None, None, None
+        self.images, self.masks, self.files = output
+        # just for in house data(created by shuo):
+        # because the data is RGB, we only extract the red channel,
+        # the mask type is float32, we convert it to uint16
+        self.images = [img[:,:,0] for img in self.images]
+        self.masks = [f.astype(np.uint16) for f in self.masks]
     
     @timer
     def core_infer(self):
@@ -56,9 +44,24 @@ class OmniposeInfer(BaseInfer):
                                   flow_threshold=self.config.flow_threshold,
                                   cellprob_threshold=self.config.cellprob_threshold,
                                   )
-        self.masks = masks
-        self.flows = flows
+        self.pred_masks = masks
+        self.pred_flows = flows
     
+    def save_result(self):
+        io.save_masks(self.images, 
+              self.pred_masks, 
+              self.pred_flows, 
+              self.files, 
+              savedir = self.base_path,
+              save_txt=False, # save txt outlines for ImageJ
+              save_flows=False, # save flows as TIFFs
+              tif=True
+              )
+        if self.masks is not None: #if gt masks are provided, compute AP
+            threshold = [0.5, 0.75, 0.9]
+            ap,tp,fp,fn = metrics.average_precision(self.masks, self.pred_masks, threshold=threshold) 
+            print(f"AP50 is {sum(ap[:,0])/len(ap[:,0])}, AP75 is {sum(ap[:,1])/len(ap[:,1])}, AP90 is {sum(ap[:,2])/len(ap[:,2])}")
+        
     def run_infer(self):
         self.prepare_data()
         self.core_infer()
