@@ -23,12 +23,13 @@ class OmniposeInfer(BaseInfer):
         model.net = self.network
         self.model = model
         self.data_dir = self.config.data_path
+        self.images, self.masks, self.files = None, None, None
         
     def prepare_data(self):    
         output = io.load_images_labels(tdir = self.data_dir,
                               image_filter = self.config.image_filter,
                               mask_filter = self.config.mask_filter,)
-        self.images, self.masks, self.files = None, None, None
+        
         self.images, self.masks, self.files = output
         # just for in house data(created by shuo):
         # because the data is RGB, we only extract the red channel,
@@ -57,12 +58,16 @@ class OmniposeInfer(BaseInfer):
               save_flows=False, # save flows as TIFFs
               tif=True
               )
-        if self.masks is not None: #if gt masks are provided, compute AP
-            threshold = [0.5, 0.75, 0.9]
-            ap,tp,fp,fn = metrics.average_precision(self.masks, self.pred_masks, threshold=threshold) 
-            print(f"AP50 is {sum(ap[:,0])/len(ap[:,0])}, AP75 is {sum(ap[:,1])/len(ap[:,1])}, AP90 is {sum(ap[:,2])/len(ap[:,2])}")
         
     def run_infer(self):
         self.prepare_data()
         self.core_infer()
         self.save_result()
+
+    def evaluate(self):
+        if self.masks is not None: #if gt masks are provided, compute AP
+            threshold = [0.5, 0.75, 0.9]
+            ap,tp,fp,fn = metrics.average_precision(self.masks, self.pred_masks, threshold=threshold) 
+            print(f"AP50 is {sum(ap[:,0])/len(ap[:,0])}, AP75 is {sum(ap[:,1])/len(ap[:,1])}, AP90 is {sum(ap[:,2])/len(ap[:,2])}")
+        else:
+            print('no ground truth masks provided, skipping evaluation!')
