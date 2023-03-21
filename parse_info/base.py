@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class Parser():
+class BaseParser():
     def __init__(self,config) -> None:
         self.meta_config = config
         

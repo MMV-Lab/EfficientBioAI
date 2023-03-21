@@ -4,9 +4,9 @@ from cellpose import core, io, models, metrics
 from utils import Dict2ObjParser
 import os 
 
-from .base import Parser
+from .base import BaseParser
 
-class OmniposeParser(Parser):
+class OmniposeParser(BaseParser):
     """parse the omnipose model
 
     Args:

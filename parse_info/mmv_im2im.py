@@ -14,9 +14,9 @@ from mmv_im2im.utils.for_transform import parse_monai_ops_vanilla
 import torch
 from tqdm.contrib import tenumerate
 from monai.transforms import RandSpatialCropSamples
-from .base import Parser
+from .base import BaseParser
 
-class Mmv_im2imParser(Parser):
+class Mmv_im2imParser(BaseParser):
     """parse the mmv_im2im model
 
     Args:
