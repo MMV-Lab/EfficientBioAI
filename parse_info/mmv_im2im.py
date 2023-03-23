@@ -6,7 +6,6 @@ from mmv_im2im.data_modules import get_data_module
 from importlib import import_module
 from mmv_im2im.configs.config_base import (
     ProgramConfig,
-    parse_adaptor,
     configuration_validation,
 ) 
 from mmv_im2im.utils.misc import generate_test_dataset_dict, parse_config
@@ -15,6 +14,39 @@ import torch
 from tqdm.contrib import tenumerate
 from monai.transforms import RandSpatialCropSamples
 from .base import BaseParser
+
+from dataclasses import dataclass
+from pathlib import Path
+from pyrallis import field
+
+import argparse
+import dataclasses
+import sys
+import warnings
+from argparse import HelpFormatter, Namespace
+from collections import defaultdict
+from logging import getLogger
+from typing import Dict, List, Sequence, Text, Type, Union, TypeVar, Generic, Optional
+
+from pyrallis import utils, cfgparsing
+from pyrallis.help_formatter import SimpleHelpFormatter
+from pyrallis.parsers import decoding
+from pyrallis.utils import Dataclass, PyrallisException
+from pyrallis.wrappers import DataclassWrapper
+
+T = TypeVar("T")
+
+def parse_adaptor(
+    config_class: Type[T],
+    config: Optional[Union[Path, str]] = None,
+    args: Optional[Sequence[str]] = None,
+) -> T:
+    file_args = cfgparsing.load_config(open(config, "r"))
+    file_args = utils.flatten(file_args, sep=".")
+    parsed_arg_values = file_args
+    deflat_d = utils.deflatten(parsed_arg_values, sep=".")
+    cfg = decoding.decode(config_class, deflat_d)
+    return cfg
 
 class Mmv_im2imParser(BaseParser):
     """parse the mmv_im2im model
