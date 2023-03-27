@@ -10,7 +10,7 @@ import os
 import numpy as np
 import argparse
 import yaml
-from utils import Dict2ObjParser
+from src.utils import Dict2ObjParser
 
 def onnx2trt(onnx_model,
              trt_path,

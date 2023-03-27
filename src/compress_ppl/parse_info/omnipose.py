@@ -1,7 +1,7 @@
 import yaml
 import torch
 from cellpose import core, io, models, metrics
-from utils import Dict2ObjParser
+from src.utils import Dict2ObjParser
 import os 
 
 from .base import BaseParser
