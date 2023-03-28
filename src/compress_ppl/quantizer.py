@@ -9,6 +9,7 @@ from mqbench.convert_deploy import convert_deploy
 from mqbench.prepare_by_platform import BackendType, prepare_by_platform
 from mqbench.utils.state import enable_calibration, enable_quantization
 from mqbench.advanced_ptq import ptq_reconstruction
+from tqdm.contrib import tenumerate
 
 from src.utils import Dict2ObjParser
 
@@ -58,12 +59,19 @@ def Quantizer():
         #TODO: add fine-tune function for qat.
         pass 
     
-    def _calibrate(self,data):
+    @staticmethod
+    def _calibrate(model, model_type, data, calib_num = 4):
         """calibrate the model using several pictures to restore the accuracy. used both in ptq and qat strategy.
         """
         #TODO: decouple.
-        pass
-    
+        if model_type == 'mmv_im2im':
+            for x in tenumerate(data):
+                model(x.as_tensor())
+        elif model_type == 'omnipose':
+            for x in tenumerate(data):
+                model.eval(x)
+        return model
+        
     
     def __call__(self,
                  input_size,

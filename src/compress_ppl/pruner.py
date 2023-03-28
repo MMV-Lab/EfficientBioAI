@@ -49,7 +49,7 @@ class Pruner():
     def _fine_tune(self):
         """fine-tune the quantized model to restore the accuracy. Only used in qat strategy.
         """
-        #TODO: add fine-tune function for qat.
+        #TODO: decouple.
         pass 
     
     def __call__(self,
@@ -69,7 +69,8 @@ class Pruner():
             print(name, ' sparsity : ', '{:.2}'.format(mask['weight'].sum() / mask['weight'].numel()), ' shape : ', mask['weight'].shape)
         ModelSpeedup(self.network, torch.rand(1,*input_size).to(self.device), masks,customized_replace_func=self.pconfig.customized_replace_func).speedup_model()
         self._fine_tune()
-        return self.network
+        self._set_network()
+        return self.model
         
     @staticmethod    
     def export_network(model,

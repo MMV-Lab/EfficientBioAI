@@ -1,13 +1,30 @@
-import yaml
-import torch
-from cellpose import core, io, models, metrics
-from src.utils import Dict2ObjParser
 import os 
+import yaml
+
+import torch
+from torch.utils.data import DataLoader, Dataset
+from cellpose import core, io, models, metrics
 
 from .base import BaseParser
+from src.utils import Dict2ObjParser
+
+class OmniposeDataset(Dataset):
+    def __init__(self, image_dir, mask_filter, transform=None):
+        self.files = io.get_image_files(image_dir,mask_filter = mask_filter)
+        self.transform = transform
+    
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, idx):
+        image = io.imread(self.files[idx])
+        if self.transform:
+            image = self.transform(image)
+        image = image[:,:,0] #only extract red channel
+        return image
 
 class OmniposeParser(BaseParser):
-    """parse the omnipose model
+    """parse the omnipose model and data.
 
     Args:
         Parser (_type_): base parser for the inherited parsers.
@@ -50,11 +67,11 @@ class OmniposeParser(BaseParser):
         return self.model
     
     def parse_data(self):
-        files = io.get_image_files(self.args.data_path,mask_filter = '_masks')
-        self.images = [io.imread(f) for f in files]
-        # just for in house data:
-        self.images = [img[:,:,0] for img in self.images] #only extract red channel
-        return self.images
+        data_path = self.args.data_path
+        mask_filter = '_masks'
+        dataset = OmniposeDataset(data_path, mask_filter)
+        dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
+        return dataloader
         
     def calibrate(self,model,calib_num: int): 
         """calibration step for the quantization to restore the precision.
