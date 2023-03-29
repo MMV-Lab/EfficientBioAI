@@ -64,14 +64,12 @@ def main():
         model.net = prepare_by_platform(model.net, backend,extra_config) # trace model and add quant nodes for model on backend
         enable_calibration(model.net) # turn on calibration, ready for gathering data
         model = parser.calibrate(model,calib_num=4)
-        print(f"=============={model.device}==============")
         enable_quantization(model.net) # turn on actually quantization, ready for simulating Backend inference
-        
         extra_kwargs = dict(input_names=data_cfg.io.input_names, output_names=data_cfg.io.output_names, dynamic_axes = dynamic_axes)
         convert_deploy(model.net, backend, input_shape,model_name = model_cfg.model_name,output_path = exp_path,deploy_to_qlinear = False,**extra_kwargs)
     else:
-        device = torch.device("cpu" if quantization_config.quantization.backend == 'openvino' else "cuda")
-        torch.onnx.export(model.net, torch.randn(1,*data_cfg.input_size).to(device), os.path.join(exp_path,f"{model_cfg.model_name}_deploy_model.onnx"), opset_version=11, input_names=data_cfg.io.input_names, output_names=data_cfg.io.output_names, dynamic_axes = dynamic_axes)
+        # device = torch.device("cpu" if quantization_config.quantization.backend == 'openvino' else "cuda")
+        torch.onnx.export(model.net, torch.randn(1,*data_cfg.input_size), os.path.join(exp_path,f"{model_cfg.model_name}_deploy_model.onnx"), opset_version=11, input_names=data_cfg.io.input_names, output_names=data_cfg.io.output_names, dynamic_axes = dynamic_axes)
     # ----------------------------------------------------------
     # 3. transform onnx to file compatible with infererence engine
     #    openvino: .bin .xml
