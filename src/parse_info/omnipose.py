@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, Dataset
 from cellpose import core, io, models, metrics
 
 from .base import BaseParser
-from src.utils import Dict2ObjParser
+from utils import Dict2ObjParser
 
 class OmniposeDataset(Dataset):
     def __init__(self, image_dir, mask_filter, transform=None):
@@ -73,30 +73,23 @@ class OmniposeParser(BaseParser):
         dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
         return dataloader
         
-    def calibrate(self,model,calib_num: int): 
-        """calibration step for the quantization to restore the precision.
-
-        Args:
-            model (_type_): model to be calibrated. Should be graph mode.
-            calib_num (int): number of images to be used for calibration
-
-        Raises:
-            ValueError: _description_
-
-        Returns:
-            model: returned calibrated model
-        """
-        if calib_num <=0 or calib_num > len(self.images):
-            raise ValueError('calibrate_num should be in range [1,{}]'.format(len(self.images)))
-        model.net.to(self.device) #noted here Graphmodule object runs 1 time slower on gpu.
-        model.eval( self.images[:calib_num], 
-                    channels=self.args.channels,
-                    diameter=self.args.diameter,
-                    flow_threshold=self.args.flow_threshold,
-                    cellprob_threshold=self.args.cellprob_threshold,
-                    # omni=self.args.omni
-                    )
-        print(f'--------------calibration done!----------')
-        return model
+    @staticmethod
+    def fine_tune(model, data, calib_num, device, args):
+        pass
+    
+    @staticmethod
+    def calibrate(model, data, calib_num, device, args):
+        model.net.to(device)
+        with torch.no_grad():
+            for i, image in enumerate(data):
+                model.eval(image, 
+                           channels=args.channels,
+                           diameter=args.diameter,
+                           flow_threshold=args.flow_threshold,
+                           cellprob_threshold=args.cellprob_threshold,
+                        )
+                if i >= calib_num:
+                    break
+        return model.net
 
 

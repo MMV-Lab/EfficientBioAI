@@ -9,7 +9,7 @@ from codecarbon import EmissionsTracker
 
 from .backend import create_opv_model, create_trt_model
 from parse_info import Mmv_im2imParser, OmniposeParser
-from src.utils import Dict2ObjParser, AverageMeter
+from utils import Dict2ObjParser, AverageMeter
 
 _CREATE_MODEL = dict(openvino = create_opv_model,
                   tensorrt = create_trt_model)

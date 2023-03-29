@@ -34,7 +34,7 @@ def parse_adaptor(
     return cfg
 
 # TODO: https://stackoverflow.com/questions/59467781/pytorch-dataloader-for-image-gt-dataset
-# currently no ground truth, so cannot be used for inference, just for calibration.
+# currently no ground truth, so cannot be reused for inference, just for calibration.
 class Mmv_im2imDataset(Dataset):
     def __init__(self, data_cfg, transform=None):
         self.data_cfg = data_cfg
@@ -48,10 +48,10 @@ class Mmv_im2imDataset(Dataset):
     
     def __getitem__(self, idx):
         img = AICSImage(self.dataset_list[idx]).reader.get_image_dask_data(**self.data_cfg.inference_input.reader_params)
-        if self.pre_process is not None:
-            img = self.pre_process(img)
         img = img.compute()
         img = torch.tensor(img.astype(np.float32))
+        if self.pre_process is not None:
+            img = self.pre_process(img)
         img = self.transform(img)
         return img
 
@@ -63,10 +63,10 @@ class Mmv_im2imParser(BaseParser):
     """
     def __init__(self,config):
         super().__init__(config)
-        self.cfg = parse_adaptor(config_class=ProgramConfig,config = self.meta_config.model.mmv_im2im.config_path)
-        self.cfg = configuration_validation(self.cfg)
-        self.data_cfg = self.cfg.data
-        self.model_cfg = self.cfg.model
+        self.args = parse_adaptor(config_class=ProgramConfig,config = self.meta_config.model.mmv_im2im.config_path)
+        self.args = configuration_validation(self.args)
+        self.data_cfg = self.args.data
+        self.model_cfg = self.args.model
         # define variables
         self.model = None
         self.data = None
@@ -74,7 +74,7 @@ class Mmv_im2imParser(BaseParser):
 
     @property
     def config(self):
-        return self.cfg
+        return self.args
             
     def parse_model(self):
         model_category = self.model_cfg.framework
@@ -92,43 +92,17 @@ class Mmv_im2imParser(BaseParser):
                                                    random_size=False)
         dataset = Mmv_im2imDataset(self.data_cfg, transform = crop)
         dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
-        return dataloader
-        
-        # create a dataloader and return:
-        
+        return dataloader     
  
-    def calibrate(self,model,calib_num: int):
-        """calibration step for the quantization to restore the precision. for each image, we crop 6 patches and feed them into the model to get the output.
-
-        Args:
-            model (_type_): model to be calibrated. Should be graph mode.
-            calib_num (int): number of images to be used for calibration
-
-        Raises:
-            ValueError: _description_
-
-        Returns:
-            model: returned calibrated model
-        """
-        try:
-            dataset = self.dataset_list[0:calib_num]
-        except:
-            raise ValueError(f'The number of calibrated images should between 0 to {self.dataset_length}')
+    @staticmethod
+    def fine_tune(model, data, args, calib_num):
+        pass
+    
+    @staticmethod
+    def calibrate(model, data, calib_num, device, args):
         with torch.no_grad():
-            for i, ds in tenumerate(dataset):
-                img = AICSImage(ds).reader.get_image_dask_data(
-                    **self.data_cfg.inference_input.reader_params
-                )
-                x = img.compute()
-                x = torch.tensor(x.astype(np.float32))
-                crop = RandSpatialCropSamples(roi_size = self.meta_config.data.input_size[-3:],
-                                                   num_samples= 6,
-                                                   random_size=False)
-                if self.pre_process is not None:
-                    x = self.pre_process(x)
-                crop_list = crop(x)
-                crop_list = [x.unsqueeze(0) for x in crop_list]
-                for k in crop_list:
-                    y_hat = model.net(k.as_tensor())
-        print(f'--------------calibration done!----------')
-        return model
+            for i, x in tenumerate(data):
+                y_hat = model.net(x.as_tensor())
+                if i >= calib_num:
+                    break
+        return model.net

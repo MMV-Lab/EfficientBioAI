@@ -6,7 +6,7 @@ from typing import List, Tuple, Union
 import yaml
 import argparse
 
-from src.utils import Dict2ObjParser
+from utils import Dict2ObjParser
 from infer import Mmv_im2imInfer, OmniposeInfer
 
 parser = argparse.ArgumentParser(description='Run the inference')
@@ -35,4 +35,5 @@ inference = infer_dict[model_name](config_yml = cfg_yml)
 #for omnipose:
 inference.run_infer()
 inference.calculate_infer_time(num= 1000)
+inference.evaluate()
 inference.calculate_energy(num= 1000)

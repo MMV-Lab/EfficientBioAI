@@ -1,6 +1,6 @@
 import torch
 import tensorrt as trt
-from src.utils import timer
+from utils import timer
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 logger = trt.Logger(trt.Logger.INFO)

@@ -24,7 +24,7 @@ from mmv_im2im.data_modules import get_data_module
 from mmv_im2im.utils.misc import generate_test_dataset_dict, parse_config
 from mmv_im2im.utils.for_transform import parse_monai_ops_vanilla
 
-from src.utils import AverageMeter,timer
+from utils import AverageMeter,timer
 from .base import BaseInfer
 
 

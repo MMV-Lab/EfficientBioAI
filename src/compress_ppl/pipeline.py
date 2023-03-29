@@ -8,31 +8,44 @@ from .quantizer import Quantizer
 from .pruner import Pruner
 from utils import Dict2ObjParser
 
+_DEVICE = dict(openvino = torch.device('cpu'),
+              tensorrt = torch.device('cuda'))
+
 class Pipeline():
     """class for generating pipeline for model compression.
     """
     def __init__(self,
                  config_dict,
+                 fine_tune,
+                 calibrate,
                  prune = False,
                  quantize = True):
         self.config_dict = config_dict
         self.prune = prune
         self.quantize = quantize
+        self.fine_tune = fine_tune
+        self.calibrate = calibrate
         
     @classmethod
     def setup(cls, config_dict):
-        if 'prune' in config_dict and config_dict['quantization']['run_mode'] == 'int8':
+        if 'prune' in config_dict.keys() and config_dict['quantization']['run_mode'] == 'int8':
             return cls(config_dict, True, True)
-        elif 'prune' in config_dict and config_dict['quantization']['run_mode'] == 'fp32':
+        elif 'prune' in config_dict.keys() and config_dict['quantization']['run_mode'] == 'fp32':
             return cls(config_dict, True, False)
-        elif 'prune' not in config_dict and config_dict['quantization']['run_mode'] == 'int8':
+        elif 'prune' not in config_dict.keys() and config_dict['quantization']['run_mode'] == 'int8':
             return cls(config_dict, False, True)
-        elif 'prune' not in config_dict and config_dict['quantization']['run_mode'] == 'fp32':
+        elif 'prune' not in config_dict.keys() and config_dict['quantization']['run_mode'] == 'fp32':
             return cls(config_dict, False, False)
         else:
             raise NotImplementedError('compression strategy not supported!')
     
-    def __call__(self,model,data, path):
+    def __call__(self,
+                 model,
+                 data,
+                 fine_tune,
+                 calibrate,
+                 path,
+                 ):
         
         self.config = Dict2ObjParser(self.config_dict).parse() 
         self.input_size = self.config.data.input_size
@@ -42,21 +55,20 @@ class Pipeline():
         self.output_names = self.config.data.io.output_names
         self.output_path = path
         self.backend = self.config.quantization.backend
+        self.device = _DEVICE[self.backend]
         self.run_mode = self.config.quantization.run_mode
         self.dynamic_batch = self.config.data.dynamic_batch
-        
-        quantizer = Quantizer(model, self.model_name, self.config.quantization, device = None)
         if self.prune:
-            pruner = Pruner(model,self.model_name, self.config.prune)
+            pruner = Pruner(model,self.model_name, self.config_dict['prune'])
             model = pruner(self.input_size, data)
-        quantizer = Quantizer(model, self.model_name, self.config.quantization, device = None)
-        quantizer(self.input_size, self.input_names, self.output_names, self.output_path, data)
+        quantizer = Quantizer(model, self.model_name, self.config_dict['quantization'], self.device)
+        quantizer(self.input_size, self.input_names, self.output_names, self.output_path, data, calibrate)
     
 
     def network2ir(self):
         if self.backend == 'tensorrt':
             try:
-                from src.onnx2trt import onnx2trt
+                from onnx2trt import onnx2trt
             except:
                 raise ImportError('tensorrt/pycuda not correctly installed!')
             trt_path = os.path.join(self.output_path,f"{self.model_name}.trt")
@@ -68,7 +80,7 @@ class Pipeline():
                     dynamic_range_file = dynamic_file_path,
                     input_names = self.input_names,
                     input_size = self.input_size,
-                    dynamic_batch = self.dymamic_batch
+                    dynamic_batch = self.dynamic_batch
                     )
             print('transform done!')
             # save the config file to the folder:

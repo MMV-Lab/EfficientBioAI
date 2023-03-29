@@ -82,10 +82,10 @@ class Pruner():
         io_names = [*input_names,*output_names]
         dynamic_axes = {k:{0: 'batch_size'} for k in io_names}
         torch.onnx.export(model,
-                              torch.randn(1,*input_size),
-                              os.path.join(output_path,f"{model_type}_deploy_model.onnx"),
-                              opset_version = 11,
-                              input_names = input_names,
-                              output_names = output_names,
-                              dynamic_axes = dynamic_axes
-        )
+                          torch.randn(1,*input_size),
+                          os.path.join(output_path,f"{model_type}_deploy_model.onnx"),
+                          opset_version = 11,
+                          input_names = input_names,
+                          output_names = output_names,
+                          dynamic_axes = dynamic_axes
+                        )

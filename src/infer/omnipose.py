@@ -11,7 +11,7 @@ import numpy as np
 from cellpose import core, utils, io, models, metrics
 from codecarbon import EmissionsTracker
 
-from src.utils import AverageMeter,timer
+from utils import AverageMeter,timer
 from .base import BaseInfer
 
 class OmniposeInfer(BaseInfer):

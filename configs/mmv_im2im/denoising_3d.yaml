@@ -13,20 +13,28 @@ data:
     output_names: ['output']
 quantization:
   toolbox: mqbench #ppq or mqbench
-  backend: tensorrt # tensorrt or openvino
-  run_mode: fp32 #int8 or fp32
-  extra_qconfig_dict: 
-    w_observer: EMAQuantileObserver
-    a_observer: EMAQuantileObserver
-    w_fakequantize: LearnableFakeQuantize
-    a_fakequantize: LearnableFakeQuantize
-    w_qscheme: 
-      bit: 8
-      symmetry: True
-      per_channel: False
-      pot_scale: False
-    a_qscheme: 
-      bit: 8
-      symmetry: True
-      per_channel: False
-      pot_scale: False
+  backend: openvino # tensorrt or openvino
+  run_mode: int8 #int8 or fp32
+  extra_config:
+    extra_qconfig_dict: 
+      w_observer: EMAQuantileObserver
+      a_observer: EMAQuantileObserver
+      w_fakequantize: LearnableFakeQuantize
+      a_fakequantize: LearnableFakeQuantize
+      w_qscheme: 
+        bit: 8
+        symmetry: True
+        per_channel: False
+        pot_scale: False
+      a_qscheme: 
+        bit: 8
+        symmetry: True
+        per_channel: False
+        pot_scale: False
+    extra_quantizer_dict: 
+      additional_module_type: 
+        - torch.nn.Conv3d
+        - torch.nn.ConvTranspose3d
+        - torch.nn.MaxPool3d
+      additional_function_type: 
+        - torch.cat
