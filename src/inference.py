@@ -32,8 +32,8 @@ inference = infer_dict[model_name](config_yml = cfg_yml)
 # inference.calculate_infer_time(num= 100)
 # inference.calculate_energy(num= 1000)
 
-
 #for omnipose:
 inference.run_infer()
 inference.calculate_infer_time(num= 1000)
+inference.evaluate()
 inference.calculate_energy(num= 1000)

@@ -4,29 +4,23 @@ import tensorrt as trt
 import torch
 import json
 import pycuda.driver as cuda
-import torchvision.transforms as transforms
-import torchvision.datasets as datasets
 import os
 import numpy as np
-import argparse
-import yaml
-from utils import Dict2ObjParser
 
 def onnx2trt(onnx_model,
              trt_path,
              log_level=trt.Logger.ERROR,
              max_workspace_size=1 << 30,
-             device_id=0,
              mode='fp32',
-             is_explicit=False,
              dynamic_range_file=None,
-             quantization_config=None):
+             input_names = None,
+             input_size = None,
+             dynamic_batch = None):
     
     if os.path.exists(trt_path):
         print(f'The "{trt_path}" exists. Remove it and continue.')
         os.remove(trt_path)
 
-    device = torch.device('cuda:{}'.format(device_id))
 
     # create builder and network
     logger = trt.Logger(log_level)
@@ -74,13 +68,11 @@ def onnx2trt(onnx_model,
             pass
 
     profile = builder.create_optimization_profile()
-    profile.set_shape(quantization_config.data.io.input_names[0], 
-                      tuple([quantization_config.data.dynamic_batch[0],*quantization_config.data.input_size]),
-                      tuple([quantization_config.data.dynamic_batch[1],*quantization_config.data.input_size]),
-                      tuple([quantization_config.data.dynamic_batch[2],*quantization_config.data.input_size])
-                        ) #only suppport 1 input senario. for omnipose, the input io name is 'data', for mmv_im2im, the input io name is 'input'.
-    print(quantization_config.data.input_size)
-    print(quantization_config.data.dynamic_batch[0])
+    profile.set_shape(input_names[0], 
+                      tuple([dynamic_batch[0],*input_size]),
+                      tuple([dynamic_batch[1],*input_size]),
+                      tuple([dynamic_batch[2],*input_size])
+                        ) #for the moment, only suppport 1 input senario.
     config.add_optimization_profile(profile)
     engine = builder.build_engine(network, config)
 
@@ -88,25 +80,3 @@ def onnx2trt(onnx_model,
         f.write(bytearray(engine.serialize()))
     return engine
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Onnx to tensorrt')
-    parser.add_argument('--onnx-path', type=str, default=None)
-    parser.add_argument('--trt-path', type=str, default=None)
-    parser.add_argument('--mode', choices=['fp32', 'int8'], default='int8')
-    parser.add_argument('--clip-range-file', type=str, default=None)
-    parser.add_argument('--evaluate', action='store_true')
-    parser.add_argument('--verbose', action='store_true')
-    args = parser.parse_args()
-
-    with open('configs/quantization_config.yaml', "r") as stream:
-        quantization_config = yaml.safe_load(stream)
-        quantization_config = Dict2ObjParser(quantization_config).parse()
-        
-    if args.onnx_path:
-        onnx2trt(onnx_model = args.onnx_path,
-                 trt_path=args.trt_path,
-                 mode=args.mode,
-                 log_level=trt.Logger.VERBOSE if args.verbose else trt.Logger.ERROR,
-                 dynamic_range_file=args.clip_range_file,
-                 quantization_config = quantization_config)

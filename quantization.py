@@ -11,8 +11,8 @@ import torch
 from tqdm.contrib import tenumerate
 import numpy as np
 
-from utils import Dict2ObjParser
-from parse_info import Mmv_im2imParser, OmniposeParser
+from src.utils import Dict2ObjParser
+from src.parse_info import Mmv_im2imParser, OmniposeParser
 import argparse
 
 def main():
@@ -76,7 +76,7 @@ def main():
     #    tensorrt: .engine
     # ----------------------------------------------------------
     if quan_cfg.backend == 'tensorrt':
-        from onnx2trt import onnx2trt
+        from src.onnx2trt import onnx2trt
         trt_path = os.path.join(exp_path,f"{model_cfg.model_name}.trt")
         dynamic_file_path = os.path.join(exp_path,f"{model_cfg.model_name}_clip_ranges.json")
         print(os.path.join(exp_path,f"{model_cfg.model_name}_deploy_model.onnx"))

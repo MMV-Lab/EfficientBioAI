@@ -11,3 +11,11 @@ class BaseParser():
     @abstractmethod
     def parse_data(self):
         pass
+    
+    @abstractmethod
+    def fine_tune(self):
+        pass
+    
+    @abstractmethod
+    def calibrate(self):
+        pass
