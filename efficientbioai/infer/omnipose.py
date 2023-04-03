@@ -2,16 +2,14 @@ import os
 import time
 import glob
 import yaml
-import sys
 import logging as log
-sys.path.append("..") 
 
 import torch
 import numpy as np
 from cellpose import core, utils, io, models, metrics
 from codecarbon import EmissionsTracker
 
-from utils import AverageMeter,timer
+from efficientbioai.utils import AverageMeter,timer
 from .base import BaseInfer
 
 class OmniposeInfer(BaseInfer):

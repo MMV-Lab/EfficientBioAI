@@ -1,6 +1,6 @@
 import torch
 import tensorrt as trt
-from utils import timer
+from efficientbioai.utils import timer
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 logger = trt.Logger(trt.Logger.INFO)

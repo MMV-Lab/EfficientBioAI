@@ -1,15 +1,10 @@
 import os
-import sys
-import yaml
-import shutil
 from typing import Optional, Sequence, Any, Union, Type
 
 import torch
 from tqdm.contrib import tenumerate
 import numpy as np
 
-from utils import Dict2ObjParser
-from parse_info import Mmv_im2imParser, OmniposeParser
 from torch.utils.data import DataLoader
 from nni.compression.pytorch.pruning import L1NormPruner
 from nni.compression.pytorch.speedup import ModelSpeedup

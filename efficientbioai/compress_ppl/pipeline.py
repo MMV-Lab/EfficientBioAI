@@ -1,12 +1,11 @@
 import os
 import yaml
 import shutil
-
 import torch
 
 from .quantizer import Quantizer
 from .pruner import Pruner
-from utils import Dict2ObjParser
+from efficientbioai.utils import Dict2ObjParser
 
 _DEVICE = dict(openvino = torch.device('cpu'),
               tensorrt = torch.device('cuda'))

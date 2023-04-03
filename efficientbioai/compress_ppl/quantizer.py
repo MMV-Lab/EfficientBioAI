@@ -11,8 +11,6 @@ from mqbench.utils.state import enable_calibration, enable_quantization
 from mqbench.advanced_ptq import ptq_reconstruction
 from tqdm.contrib import tenumerate
 
-from utils import Dict2ObjParser
-
 _BACKEND = dict(
                 tensorrt = BackendType.Tensorrt,
                 openvino = BackendType.OPENVINO,
@@ -35,7 +33,7 @@ class Quantizer():
     def _get_network(self): 
         """extract the part in the torch module for quantization.
         """
-        if self.model_type == 'mmv_im2im' or 'cellpose':
+        if self.model_type in ['mmv_im2im', 'cellpose', 'omnipose']:
             self.network = self.model.net 
         elif self.model_type == 'academic':
             self.network = self.model
@@ -45,7 +43,7 @@ class Quantizer():
     def _set_network(self):
         """retrive the quantized network and insert back to the original model.
         """
-        if self.model_type == 'mmv_im2im' or 'cellpose':
+        if self.model_type in ['mmv_im2im', 'cellpose', 'omnipose']:
             self.model.net = self.network
         elif self.model_type == 'academic':
             self.model = self.network

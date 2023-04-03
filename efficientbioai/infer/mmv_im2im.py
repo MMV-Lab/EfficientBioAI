@@ -5,7 +5,6 @@ import glob
 import yaml
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, Sequence
-sys.path.append("..") 
 
 import torch
 import numpy as np
@@ -24,7 +23,7 @@ from mmv_im2im.data_modules import get_data_module
 from mmv_im2im.utils.misc import generate_test_dataset_dict, parse_config
 from mmv_im2im.utils.for_transform import parse_monai_ops_vanilla
 
-from utils import AverageMeter,timer
+from efficientbioai.utils import AverageMeter,timer
 from .base import BaseInfer
 
 

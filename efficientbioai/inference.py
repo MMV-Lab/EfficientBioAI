@@ -6,7 +6,7 @@ from typing import List, Tuple, Union
 import yaml
 import argparse
 
-from utils import Dict2ObjParser
+from efficientbioai.utils import Dict2ObjParser
 from infer import Mmv_im2imInfer, OmniposeInfer
 
 parser = argparse.ArgumentParser(description='Run the inference')

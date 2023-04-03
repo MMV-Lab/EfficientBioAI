@@ -1,12 +1,11 @@
 import os 
 import yaml
-
 import torch
 from torch.utils.data import DataLoader, Dataset
 from cellpose import core, io, models, metrics
 
 from .base import BaseParser
-from utils import Dict2ObjParser
+from efficientbioai.utils import Dict2ObjParser
 
 class OmniposeDataset(Dataset):
     def __init__(self, image_dir, mask_filter, transform=None):

@@ -1,13 +1,13 @@
 import os
 import shutil
 from functools import partial
-from utils import Dict2ObjParser
+from efficientbioai.utils import Dict2ObjParser
 import yaml
 import numpy as np
 import argparse
 import torch
 from parse_info import Mmv_im2imParser, OmniposeParser
-from compress_ppl import Pipeline
+from efficientbioai.compress_ppl import Pipeline
 
 _PARSER_DICT = dict(
         mmv_im2im =  lambda : Mmv_im2imParser,

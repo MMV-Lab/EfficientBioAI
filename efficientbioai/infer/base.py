@@ -1,15 +1,13 @@
 from abc import ABC, abstractmethod
 import os
-import sys
 import time
-sys.path.append("..") 
 
 import torch
 from codecarbon import EmissionsTracker
 
 from .backend import create_opv_model, create_trt_model
-from parse_info import Mmv_im2imParser, OmniposeParser
-from utils import Dict2ObjParser, AverageMeter
+from efficientbioai.parse_info import Mmv_im2imParser, OmniposeParser
+from efficientbioai.utils import Dict2ObjParser, AverageMeter
 
 _CREATE_MODEL = dict(openvino = create_opv_model,
                   tensorrt = create_trt_model)

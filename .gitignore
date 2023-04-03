@@ -4,3 +4,12 @@ data/*
 **/__pycache__/
 **/*.pyc
 model/*
+tutorial/exp/*
+tutorial/data/*
+*.egg-info
+build/*
+dist/*
+test/*
+**/*.pth
+**/*.tar.gz
+**/*.zip
