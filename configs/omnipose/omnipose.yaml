@@ -13,7 +13,7 @@ data:
 quantization:
   toolbox: mqbench
   backend: openvino
-  run_mode: fp32
+  run_mode: int8
   extra_config:
     extra_qconfig_dict: 
       w_observer: EMAQuantileObserver
@@ -37,3 +37,16 @@ quantization:
         - torch.nn.MaxPool3d
       additional_function_type: 
         - torch.cat
+prune:
+  config_list:
+    - sparsity_per_layer: 0.5
+      op_types: 
+        - Conv2d
+        - Linear
+    - exclude: True
+      op_names:
+        - output.2
+        - output
+        - output.1
+        - downsample.down.res_down_3.conv.conv_3.2
+  customized_replace_func: {}

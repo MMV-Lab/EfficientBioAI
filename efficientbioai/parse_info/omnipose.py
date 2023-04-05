@@ -66,29 +66,26 @@ class OmniposeParser(BaseParser):
         return self.model
     
     def parse_data(self):
-        data_path = self.args.data_path
-        mask_filter = '_masks'
-        dataset = OmniposeDataset(data_path, mask_filter)
-        dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
-        return dataloader
+        data = io.load_images_labels(self.args.compress_data_path)
+        return data
         
     @staticmethod
-    def fine_tune(model, data, calib_num, device, args):
-        pass
+    def fine_tune(model, data, device, args):
+        model.train(*data,
+                    channels=args.channels
+        )
+        return model
     
     @staticmethod
     def calibrate(model, data, calib_num, device, args):
         model.net.to(device)
         with torch.no_grad():
-            for i, image in enumerate(data):
-                model.eval(image, 
-                           channels=args.channels,
-                           diameter=args.diameter,
-                           flow_threshold=args.flow_threshold,
-                           cellprob_threshold=args.cellprob_threshold,
-                        )
-                if i >= calib_num:
-                    break
+            model.eval(data[0][0:calib_num],
+                       channels=args.channels,
+                       diameter=args.diameter,
+                       flow_threshold=args.flow_threshold,
+                       cellprob_threshold=args.cellprob_threshold
+            )
         return model.net
 
 

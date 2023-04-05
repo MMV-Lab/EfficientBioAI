@@ -95,7 +95,7 @@ class Mmv_im2imParser(BaseParser):
         return dataloader     
  
     @staticmethod
-    def fine_tune(model, data, args, calib_num):
+    def fine_tune(model, data, device, args):
         pass
     
     @staticmethod
