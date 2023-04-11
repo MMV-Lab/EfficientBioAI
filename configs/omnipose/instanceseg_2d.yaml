@@ -1,4 +1,5 @@
 data_path: "data/omnipose/in_house_data/test/"
+compress_data_path: "data/omnipose/in_house_data/train/"
 image_filter: ''
 mask_filter: '_masks'
 omni: False

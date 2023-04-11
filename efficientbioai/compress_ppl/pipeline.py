@@ -15,15 +15,11 @@ class Pipeline():
     """
     def __init__(self,
                  config_dict,
-                 fine_tune,
-                 calibrate,
                  prune = False,
                  quantize = True):
         self.config_dict = config_dict
         self.prune = prune
         self.quantize = quantize
-        self.fine_tune = fine_tune
-        self.calibrate = calibrate
         
     @classmethod
     def setup(cls, config_dict):
@@ -59,7 +55,7 @@ class Pipeline():
         self.dynamic_batch = self.config.data.dynamic_batch
         if self.prune:
             pruner = Pruner(model,self.model_name, self.config_dict['prune'])
-            model = pruner(self.input_size, data)
+            model = pruner(self.input_size, data, fine_tune, device = self.device)
         quantizer = Quantizer(model, self.model_name, self.config_dict['quantization'], self.device)
         quantizer(self.input_size, self.input_names, self.output_names, self.output_path, data, calibrate)
     
