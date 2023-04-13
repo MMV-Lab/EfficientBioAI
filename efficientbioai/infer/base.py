@@ -5,12 +5,10 @@ import time
 import torch
 from codecarbon import EmissionsTracker
 
-from .backend import create_opv_model, create_trt_model
+# from .backend import create_opv_model, create_trt_model
 from efficientbioai.parse_info import Mmv_im2imParser, OmniposeParser
 from efficientbioai.utils import Dict2ObjParser, AverageMeter
 
-_CREATE_MODEL = dict(openvino = create_opv_model,
-                  tensorrt = create_trt_model)
 _DEVICE = dict(openvino = torch.device('cpu'),
               tensorrt = torch.device('cuda'))
 _PARSER = dict(omnipose = OmniposeParser,
@@ -21,6 +19,17 @@ def check_device(backend):
         raise ValueError('TensorRT backend requires CUDA to be available')
     else:
         print('Using {} backend, device checked!'.format(backend))
+
+def create_model(backend, model_path):
+    if backend == 'openvino':
+        from .backend.openvino import create_opv_model
+        return create_opv_model(model_path)
+    elif backend == 'tensorrt':
+        from .backend.tensorrt import create_trt_model
+        return create_trt_model(model_path)
+    else:
+        raise ValueError('backend {} is not supported'.format(backend))
+    
 
 class BaseInfer():
     def __init__(self,config_yml) -> None:
@@ -40,7 +49,7 @@ class BaseInfer():
         self.base_path = os.path.split(cfg_path)[0]
         infer_path = config_yml['model'][self.model_name]['model_path']
         self.parser = _PARSER[self.model_name](configure)
-        self.network = _CREATE_MODEL[self.backend](infer_path)
+        self.network = create_model(self.backend, infer_path)
         self.config = self.parser.config
         self.input_size = configure.data.input_size
         
