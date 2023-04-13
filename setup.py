@@ -5,12 +5,13 @@ setup_requirements = [
 ]
 
 requirements = [
+    "numpy",
     "codecarbon", # for measuring energy consumption
     "torch>=1.10, <1.11",
     "mmv_im2im",
     "cellpose @ git+https://github.com/audreyeternal/cellpose.git",
-    'nni' # for pruning,
-    'tensorboard' # for visualization
+    'nni', # for pruning,
+    'tensorboard', # for visualization
 ]
 
 test_requirements = [
@@ -29,7 +30,8 @@ opv_requirements = [
 ]
 
 trt_requirements = [
-    "tensorrt>=8.0",
+    "pycuda",
+    "tensorrt>=8.0, <8.6",
 ]
 
 extra_requirements = {
