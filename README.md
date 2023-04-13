@@ -9,7 +9,8 @@ We support several popular bioimage AI tools like([mmv_im2im](https://github.com
 ### pip:
 First create a virtual environment using conda:
 ```bash
-conda create -n efficientbioai python=3.8, setuptools=59.5.0
+conda config --add channels conda-forge
+conda create -n efficientbioai python=3.8 setuptools=59.5.0
 ```
 Then we need to install the dependencies:
 ```bash
