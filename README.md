@@ -7,6 +7,25 @@ We support several popular bioimage AI tools like([mmv_im2im](https://github.com
  
 ## Installation:
 ### pip:
+First create a virtual environment using conda:
+```bash
+conda config --add channels conda-forge
+conda create -n efficientbioai python=3.8 setuptools=59.5.0
+```
+Then we need to install the dependencies:
+```bash
+git clone git@github.com:ModelTC/MQBench.git
+cd MQBench
+python setup.py install
+cd ..
+```
+Then install the `efficientbioai` package:
+
+```bash
+git clone git@github.com:MMV-Lab/EfficientBioAI.git
+cd EfficientBioAI
+pip install -e .[cpu/gpu/all] # for intel cpu, nvidia gpu or both
+```
 
 ### docker:(recommended)
 We use different docker images for both cpu and gpu. Assume that you are in the root directory of the project.
