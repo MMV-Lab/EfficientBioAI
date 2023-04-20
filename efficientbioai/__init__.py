@@ -1,1 +1,1 @@
-from .compress_ppl import Pipeline
+from .compress_ppl import Pipeline  # noqa: F401
