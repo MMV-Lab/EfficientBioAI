@@ -52,7 +52,7 @@ class OmniposeParser(BaseParser):
             and torch.cuda.is_available()
         )
         self.device = torch.device("cuda" if use_gpu else "cpu")
-        if self.args.pretrained_model != None and os.path.exists(
+        if self.args.pretrained_model is not None and os.path.exists(
             self.args.pretrained_model
         ):
             self.model = models.CellposeModel(

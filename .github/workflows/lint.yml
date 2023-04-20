@@ -26,4 +26,4 @@ jobs:
 
       - name: lint with flake8
         run: |
-          flake8 efficientbioai --ignore=E501,F401,W391,F403 --count --verbose --show-source --statistics
+          flake8 efficientbioai --ignore=E501,F401,W391,F403,W503 --count --verbose --show-source --statistics

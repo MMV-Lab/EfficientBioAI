@@ -83,9 +83,9 @@ def pad(img: torch.Tensor, N) -> torch.Tensor:
     """
     z, y, x = img.shape[-3:]
     f = (
-        lambda l, N: (2 ^ N) * (l // 2 ^ N)
-        if (l % (2 ^ N)) <= (2 ^ (N - 1))
-        else (2 ^ N) * (l // 2 ^ N + 1)
+        lambda length, N: (2 ^ N) * (length // 2 ^ N)
+        if (length % (2 ^ N)) <= (2 ^ (N - 1))
+        else (2 ^ N) * (length // 2 ^ N + 1)
     )  # to nearest multiples of 2^N
 
     z, y, x = f(z), f(y), f(x)
