@@ -46,55 +46,18 @@ cd ../..
 bash docker/gpu/run_container.sh #run the docker container
 ```
 
-## Structure of the code:
-```bash
-├── configs
-│   ├── config_base.yaml
-│   ├── mmv_im2im
-│   └── omnipose
-├── data
-│   ├── in_house_data
-│   └── labelfree_3d
-├── experiment
-├── infer
-│   ├── __init__.py
-│   ├── openvino.py
-│   ├── tensorrt.py
-├── inference.py
-├── model
-│   ├── cellpose
-│   ├── mmv_im2im
-│   └── omnipose
-├── onnx2trt.py
-├── parse_info
-│   ├── __init__.py
-│   ├── mmv_im2im.py
-│   ├── omnipose.py
-├── quantization.py
-└── utils.py
-```
-- The `configs` folder contains the configuration files for different models. You can modify the configuration files to fit your own models. 
-- The `parse_info` folder contains the parsing functions for different models. You can add your own parsing functions here. 
-- The `infer` folder contains the inference functions for different inference engines. You can add your own inference functions here. 
-- The `utils.py` contains some useful functions. 
-- The `onnx2trt.py` is used to convert onnx model to tensorrt model.
-
-
 ## How to run it:
-Take mmv_im2im for example:
-- quantization:
+### Use scripts:
+- compression:
  ```bash
-python quantization.py --config configs/mmv_im2im/config_base.yaml --exp_path experiment/mmv_im2im
+python efficientbioai/compress.py --config path/to/the/config.yaml --exp_path experiment/save_path
 ```
-- inference and evaluation:
+- inference:
 ```bash
-python inference.py --config experiment/mmv_im2im/mmv_im2im.yaml
+python efficientbioai/inference.py --config path/to/the/config.yaml
 ```
-- latency for one patch(normally [1,1,32,128,128]):
-  - openvino:
-    ```bash
-    benchmark_app -m ./path/to/mmv_im2im_deploy_model.xml -nstream 1 -data_shape [1,1,32,128,128] -api sync
-    ```
-  - tensorrt: 
+### Use functions:
+There is a simple [example](tutorial/compress_custom_network.ipynb)
+
 
 Note that pretrained model and data should be placed in the `model` and `data` folders, respectively. You can download our mmv_im2im pretrained model from [nextcloud](). All the intermediate files will be saved in the `experiment` folder. 
