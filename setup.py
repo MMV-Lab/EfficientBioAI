@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages  
+from setuptools import setup, find_packages
 
 setup_requirements = [
     "pytest-runner>=5.2",
@@ -6,12 +6,12 @@ setup_requirements = [
 
 requirements = [
     "numpy",
-    "codecarbon", # for measuring energy consumption
+    "codecarbon",  # for measuring energy consumption
     "torch>=1.10, <1.11",
     "mmv_im2im",
     "cellpose @ git+https://github.com/audreyeternal/cellpose.git",
-    'nni', # for pruning,
-    'tensorboard', # for visualization
+    "nni",  # for pruning,
+    "tensorboard",  # for visualization
 ]
 
 test_requirements = [
@@ -24,10 +24,7 @@ test_requirements = [
     "pytest-raises>=0.11",
 ]
 
-opv_requirements = [
-    "openvino",
-    "openvino-dev[onnx,pytorch]"
-]
+opv_requirements = ["openvino", "openvino-dev[onnx,pytorch]"]
 
 trt_requirements = [
     "pycuda",
@@ -35,28 +32,28 @@ trt_requirements = [
 ]
 
 extra_requirements = {
-    'cpu': opv_requirements,
-    'gpu': trt_requirements,
-    'all': [*opv_requirements, *trt_requirements],
-    'test': test_requirements,
+    "cpu": opv_requirements,
+    "gpu": trt_requirements,
+    "all": [*opv_requirements, *trt_requirements],
+    "test": test_requirements,
 }
 
 setup(
-    name = 'efficientbioai',
+    name="efficientbioai",
     keywords="deep learning, quantization, microscopy model compression",
-    description = 'efficientbioai is a python package for efficient deep learning in bioimaging',
-    version = '0.0.1',
-    author = 'mmv_lab team',
-    author_email = 'yu.zhou@isas.de',
-    packages = find_packages(),
+    description="efficientbioai is a python package for efficient deep learning in bioimaging",
+    version="0.0.1",
+    author="mmv_lab team",
+    author_email="yu.zhou@isas.de",
+    packages=find_packages(),
     python_requires=">=3.8",
-    install_requires = requirements,
+    install_requires=requirements,
     tests_require=test_requirements,
-    extras_require = extra_requirements, # install use: pip install efficientbioai[tensorrt/openvino/all]
+    extras_require=extra_requirements,  # install use: pip install efficientbioai[tensorrt/openvino/all]
     zip_safe=False,
 )
 
 # # only used when the environment is already set up
-# setup(name = 'efficientbioai', 
+# setup(name = 'efficientbioai',
 #       packages = find_packages(),
 #       zip_safe=False)
