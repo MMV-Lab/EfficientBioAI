@@ -1,4 +1,6 @@
 import torch
+from typing import Any, List, Union
+from pathlib import Path
 import tensorrt as trt
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -34,7 +36,14 @@ def torch_device_from_trt(device):
 
 
 class TRTModule(torch.nn.Module):
-    def __init__(self, engine=None, input_names=None, output_names=None):
+    """TRTModule is a wrapper of TensorRT engine. Behave like a torch.nn.Module"""
+
+    def __init__(
+        self,
+        engine: Any = None,
+        input_names: List[str] = None,
+        output_names: List[str] = None,
+    ):
         super(TRTModule, self).__init__()
         self.engine = engine
         if self.engine is not None:
@@ -71,7 +80,15 @@ class TRTModule(torch.nn.Module):
         return outputs[0] if len(outputs) == 1 else reversed(outputs)
 
 
-def create_trt_model(trt_path):
+def create_trt_model(trt_path: Union[str, Path]) -> TRTModule:
+    """Create a trt model from a trt file.
+
+    Args:
+        trt_path (Union[str, Path]): path to the trt engine file
+
+    Returns:
+        TRTModule: trt engine
+    """
     with open(trt_path, "rb") as f, trt.Runtime(logger) as runtime:
         engine = runtime.deserialize_cuda_engine(f.read())
     input_name = []

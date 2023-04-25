@@ -4,19 +4,40 @@ import tensorrt as trt
 import json
 import pycuda.driver as cuda  # noqa F401
 import os
+from pathlib import Path
+from typing import Any, List, Optional, Union
 
 
 def onnx2trt(
-    onnx_model,
-    trt_path,
+    onnx_model: str,
+    trt_path: str,
     log_level=trt.Logger.ERROR,
-    max_workspace_size=1 << 30,
-    mode="fp32",
-    dynamic_range_file=None,
-    input_names=None,
-    input_size=None,
-    dynamic_batch=None,
-):
+    max_workspace_size: int = 1 << 30,
+    mode: str = "fp32",
+    dynamic_range_file: Union[str, Path, None] = None,
+    input_names: Optional[List[str]] = None,
+    input_size: Optional[List[int]] = None,
+    dynamic_batch: Optional[List[int]] = [1, 4, 8],
+) -> Any:
+    """transform onnx model to tensorrt model. It supports dynamic batch size.
+
+    Args:
+        onnx_model (str): onnx model path
+        trt_path (str): path to save tensorrt engine model
+        log_level (Any, optional): Log level. Defaults to trt.Logger.ERROR. # noqa: E501
+        max_workspace_size (int, optional): builder workspace size. Defaults to 1<<30.
+        mode (str): int8 or fp32. Defaults to "fp32".
+        dynamic_range_file (Union[str, Path, None]): file that stores calibration info(i.e. zero point, scale). Defaults to None.
+        input_names (Optional[List[str]]): Defaults to None.
+        input_size (Optional[List[int]]): Defaults to None.
+        dynamic_batch (Optional[List[int]]): [min, optim, max]. Defaults to [1,4,8].
+
+    Raises:
+        RuntimeError: parse onnx failed
+
+    Returns:
+        Any: tensorrt engine model returned.
+    """
     if os.path.exists(trt_path):
         print(f'The "{trt_path}" exists. Remove it and continue.')
         os.remove(trt_path)

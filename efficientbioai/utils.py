@@ -6,6 +6,8 @@ import torch
 
 # adapted from https://stackoverflow.com/questions/6866600/how-to-parse-read-a-yaml-file-into-a-python-object # noqa: E501
 class Dict2ObjParser:
+    """Parse a nested dictionary into a nested named tuple."""
+
     def __init__(self, nested_dict):
         self.nested_dict = nested_dict
 

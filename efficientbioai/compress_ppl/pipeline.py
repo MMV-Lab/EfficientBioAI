@@ -2,6 +2,8 @@ import os
 import yaml
 import shutil
 import torch
+from typing import Dict, Optional, Any, Callable, Union
+from pathlib import Path
 
 from .quantizer import Quantizer
 from .pruner import Pruner
@@ -11,15 +13,15 @@ _DEVICE = dict(openvino=torch.device("cpu"), tensorrt=torch.device("cuda"))
 
 
 class Pipeline:
-    """class for generating pipeline for model compression."""
+    """class for generating pipeline for model compression. Contains pruning and quantization."""
 
-    def __init__(self, config_dict, prune=False, quantize=True):
+    def __init__(self, config_dict: dict, prune: bool = False, quantize: bool = True):
         self.config_dict = config_dict
         self.prune = prune
         self.quantize = quantize
 
     @classmethod
-    def setup(cls, config_dict):
+    def setup(cls, config_dict: dict):
         if (
             "prune" in config_dict.keys()
             and config_dict["quantization"]["run_mode"] == "int8"
@@ -45,11 +47,11 @@ class Pipeline:
 
     def __call__(
         self,
-        model,
-        data,
-        fine_tune,
-        calibrate,
-        path,
+        model: Any,
+        data: Any,
+        fine_tune: Callable,
+        calibrate: Callable,
+        path: Union[str, Path],
     ):
         self.config = Dict2ObjParser(self.config_dict).parse()
         self.input_size = self.config.data.input_size
@@ -78,6 +80,13 @@ class Pipeline:
         )
 
     def network2ir(self):
+        """from onnx to openvino ir or tensorrt engine.
+
+        Raises:
+            ImportError: pycuda not correctly installed
+            ImportError: openvino mo module is not correctly installed or not in the path
+            NotImplementedError: backend not supported
+        """
         if self.backend == "tensorrt":
             try:
                 from onnx2trt import onnx2trt

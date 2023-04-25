@@ -1,6 +1,6 @@
 import os
-from typing import Sequence, Any, Union
-
+from typing import Sequence, Any, Union, List, Callable
+from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 from mqbench.convert_deploy import convert_deploy
@@ -16,7 +16,7 @@ _BACKEND = dict(
 class Quantizer:
     """Quantizer class for quantizing a model."""
 
-    def __init__(self, model, model_type, qconfig=None, device=None):
+    def __init__(self, model: Any, model_type: str, qconfig: dict = None, device=None):
         self.model = model
         self.model_type = model_type
         self.qconfig = qconfig
@@ -42,13 +42,23 @@ class Quantizer:
 
     def __call__(
         self,
-        input_size,
-        input_names,
-        output_names,
-        output_path,
+        input_size: List[int],
+        input_names: List[str],
+        output_names: List[str],
+        output_path: Union[str, Path],
         data: Union[DataLoader, Sequence[Any], None] = None,
-        calibrate=None,
+        calibrate: Callable = None,
     ):
+        """Quantize step implementation using MQBench api. Now only support int8 PTQ.
+
+        Args:
+            input_size (List[int]): input size
+            input_names (List[str]): input names
+            output_names (List[str]): output names
+            output_path (Union[str, Path]): path for saving the quantized onnx model
+            data (Union[DataLoader, Sequence[Any], None], optional): data for calibration. Defaults to None.
+            calibrate (_type_, optional): calibration step, defined in the Parser class. Defaults to None.
+        """
         input_shape = {
             input_names[0]: [1, *input_size]
         }  # batchsize+channel, ZYX. only consider 1 input senario.

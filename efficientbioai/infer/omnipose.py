@@ -6,6 +6,8 @@ from .base import BaseInfer
 
 
 class OmniposeInfer(BaseInfer):
+    """inference for omnipose model."""
+
     def __init__(self, config_yml) -> None:  # define the model
         super().__init__(config_yml)
         model = self.parser.parse_model()
