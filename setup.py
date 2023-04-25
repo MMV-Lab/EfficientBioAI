@@ -1,5 +1,8 @@
 from setuptools import setup, find_packages
 
+with open("README.md") as readme_file:
+    readme = readme_file.read()
+
 setup_requirements = [
     "pytest-runner>=5.2",
 ]
@@ -43,6 +46,8 @@ setup(
     name="efficientbioai",
     keywords="deep learning, quantization, microscopy model compression",
     description="efficientbioai is a python package for efficient deep learning in bioimaging",
+    long_description=readme,
+    long_description_content_type="text/markdown",
     version="0.0.5",
     author="mmv_lab team",
     author_email="yu.zhou@isas.de",
