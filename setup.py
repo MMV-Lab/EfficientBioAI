@@ -9,7 +9,8 @@ requirements = [
     "codecarbon",  # for measuring energy consumption
     "torch>=1.10, <1.11",
     "mmv_im2im",
-    "cellpose @ git+https://github.com/audreyeternal/cellpose.git",
+    "cellpose",
+    # "cellpose @ git+https://github.com/audreyeternal/cellpose.git", # pypi doesnt allow to install from git
     "nni",  # for pruning,
     "tensorboard",  # for visualization
 ]
