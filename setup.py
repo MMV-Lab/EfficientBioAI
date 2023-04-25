@@ -42,7 +42,7 @@ setup(
     name="efficientbioai",
     keywords="deep learning, quantization, microscopy model compression",
     description="efficientbioai is a python package for efficient deep learning in bioimaging",
-    version="0.0.1",
+    version="0.0.2",
     author="mmv_lab team",
     author_email="yu.zhou@isas.de",
     packages=find_packages(),
