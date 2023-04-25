@@ -48,7 +48,7 @@ setup(
     description="efficientbioai is a python package for efficient deep learning in bioimaging",
     long_description=readme,
     long_description_content_type="text/markdown",
-    version="0.0.5",
+    version="0.0.6",
     author="mmv_lab team",
     author_email="yu.zhou@isas.de",
     packages=find_packages(),
