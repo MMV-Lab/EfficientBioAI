@@ -2,7 +2,7 @@ import os
 import yaml
 import shutil
 import torch
-from typing import Dict, Optional, Any, Callable, Union
+from typing import Any, Callable, Union
 from pathlib import Path
 
 from .quantizer import Quantizer
