@@ -1,11 +1,14 @@
 import os
 from typing import Sequence, Any, Union, List, Callable
 from pathlib import Path
+import warnings
 import torch
 from torch.utils.data import DataLoader
-from mqbench.convert_deploy import convert_deploy
-from mqbench.prepare_by_platform import BackendType, prepare_by_platform
-from mqbench.utils.state import enable_calibration, enable_quantization
+
+from mqbench.convert_deploy import convert_deploy  # noqa E402
+from mqbench.prepare_by_platform import BackendType, prepare_by_platform  # noqa E402
+from mqbench.utils.state import enable_calibration, enable_quantization  # noqa E402
+from mqbench.utils.logger import logger
 
 _BACKEND = dict(
     tensorrt=BackendType.Tensorrt,
@@ -59,6 +62,9 @@ class Quantizer:
             data (Union[DataLoader, Sequence[Any], None], optional): data for calibration. Defaults to None.
             calibrate (_type_, optional): calibration step, defined in the Parser class. Defaults to None.
         """
+        logger.handlers = []
+        logger.setLevel("CRITICAL")
+        warnings.filterwarnings("ignore")
         input_shape = {
             input_names[0]: [1, *input_size]
         }  # batchsize+channel, ZYX. only consider 1 input senario.
