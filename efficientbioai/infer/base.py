@@ -34,7 +34,7 @@ def create_model(backend, model_path):
 
 
 class BaseInfer:
-    def __init__(self, config_yml) -> None:
+    def __init__(self, config_yml: dict) -> None:
         """
         Initialize the base class for inference.
             1. Parse the config file

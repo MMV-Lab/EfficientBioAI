@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Union
+from typing import Optional, Union, Callable, List, Any
 import torch
 from nni.compression.pytorch.pruning import L1NormPruner
 from nni.compression.pytorch.speedup import ModelSpeedup
@@ -8,7 +8,7 @@ from nni.compression.pytorch.speedup import ModelSpeedup
 class Pruner:
     """class for pruning algorithm."""
 
-    def __init__(self, model, model_type, pconfig):
+    def __init__(self, model: Any, model_type: str, pconfig: dict):
         self.model = model
         self.model_type = model_type
         self.pconfig = pconfig
@@ -33,11 +33,11 @@ class Pruner:
 
     def __call__(
         self,
-        input_size,
-        data,
-        fine_tune,
+        input_size: List[int],
+        data: Any,
+        fine_tune: Callable,
         device: Optional[Union[str, torch.device]] = torch.device("cpu"),
-    ):
+    ) -> Any:
         if len(input_size) > 3:
             raise ValueError("currently cannot support 3d pruning!")
         self._get_network()
