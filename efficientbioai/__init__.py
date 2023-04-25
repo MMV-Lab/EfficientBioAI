@@ -11,4 +11,4 @@ def get_module_version():
     return __version__
 
 
-from .compress_ppl import Pipeline  # noqa: F401
+from .compress_ppl import Pipeline  # noqa: F401,E402
