@@ -86,7 +86,7 @@ class OmniposeParser(BaseParser):
         return model
 
     @staticmethod
-    def calibrate(model, data, calib_num, device, args):
+    def calibrate(model, data, calib_num=4, device=torch.device("cpu"), args=None):
         model.net.to(device)
         with torch.no_grad():
             model.eval(

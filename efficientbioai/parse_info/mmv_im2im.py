@@ -110,7 +110,7 @@ class Mmv_im2imParser(BaseParser):
         pass
 
     @staticmethod
-    def calibrate(model, data, calib_num, device, args):
+    def calibrate(model, data, calib_num=4, device=torch.device("cpu"), args=None):
         with torch.no_grad():
             for i, x in tenumerate(data):
                 model.net(x.as_tensor())

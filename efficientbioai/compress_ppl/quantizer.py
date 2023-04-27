@@ -98,7 +98,7 @@ class Quantizer:
             )  # turn on calibration, ready for gathering data
             self._set_network()
             self.network = calibrate(
-                self.model, data, 4, self.device
+                self.model, data, device=self.device
             )  # run calibration
             self._get_network()
             enable_quantization(
