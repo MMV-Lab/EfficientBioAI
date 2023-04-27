@@ -15,7 +15,7 @@ def infer(model: Any, data: Iterable, calib_num: int, device: Any) -> Any:
     return model
 
 
-def train(model, dataloader, num_epoch, device):
+def train(model, dataloader, device=torch.device("cpu"), num_epoch=20):
     model.to(device)
     criterion = DiceLoss(to_onehot_y=True, softmax=True)
     optimizer = torch.optim.Adam(model.parameters(), 1e-2)

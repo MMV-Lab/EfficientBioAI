@@ -2,9 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 # 2D-Unet Model taken from https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_model.py
 class DoubleConv(nn.Module):
-    '''(conv => BN => ReLU) * 2'''
+    """(conv => BN => ReLU) * 2"""
 
     def __init__(self, in_ch, out_ch):
         super(DoubleConv, self).__init__()
@@ -14,7 +15,8 @@ class DoubleConv(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(out_ch, out_ch, 3, padding=1),
             nn.BatchNorm2d(out_ch),
-            nn.ReLU(inplace=True))
+            nn.ReLU(inplace=True),
+        )
 
     def forward(self, x):
         x = self.conv(x)
@@ -34,10 +36,7 @@ class InConv(nn.Module):
 class Down(nn.Module):
     def __init__(self, in_ch, out_ch):
         super(Down, self).__init__()
-        self.mpconv = nn.Sequential(
-            nn.MaxPool2d(2),
-            DoubleConv(in_ch, out_ch)
-        )
+        self.mpconv = nn.Sequential(nn.MaxPool2d(2), DoubleConv(in_ch, out_ch))
 
     def forward(self, x):
         x = self.mpconv(x)
@@ -45,11 +44,11 @@ class Down(nn.Module):
 
 
 class Up(nn.Module):
-    def __init__(self, in_ch, out_ch, bilinear = False):
+    def __init__(self, in_ch, out_ch, bilinear=False):
         super(Up, self).__init__()
 
         if bilinear:
-            self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+            self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
         else:
             self.up = nn.ConvTranspose2d(in_ch // 2, in_ch // 2, 2, stride=2)
 
@@ -81,7 +80,7 @@ class Unet(nn.Module):
     def __init__(self, in_channels, classes):
         super(Unet, self).__init__()
         self.n_channels = in_channels
-        self.n_classes =  classes
+        self.n_classes = classes
 
         self.inc = InConv(in_channels, 64)
         self.down1 = Down(64, 128)
@@ -93,7 +92,6 @@ class Unet(nn.Module):
         self.up3 = Up(256, 64)
         self.up4 = Up(128, 64)
         self.outc = OutConv(64, classes)
-        
 
     def forward(self, x):
         x1 = self.inc(x)

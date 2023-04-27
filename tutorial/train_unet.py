@@ -38,7 +38,7 @@ def main():
         data=generate_data_dict(args.data_path, args.gt_path), transform=train_transform
     )
     dataloader = DataLoader(dataset, batch_size=2, shuffle=True, num_workers=0)
-    model = train(net, dataloader, args.num_epoch, device)
+    model = train(net, dataloader, device, args.num_epoch)
 
     torch.save(model.state_dict(), "./unet.pth")
 
