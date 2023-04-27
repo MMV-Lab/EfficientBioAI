@@ -12,7 +12,7 @@ data:
     input_names: ['input']
     output_names: ['output']
 quantization:
-  toolbox: mqbench #ppq or mqbench
+  type: PTQ # could be PTQ or QAT
   backend: openvino # tensorrt or openvino
   run_mode: int8 #int8 or fp32
   extra_config:
@@ -35,9 +35,14 @@ quantization:
       additional_function_type: 
         - torch.cat
 prune:
+  type: L1NormPruner # could be LevelPruner, L1NormPruner, L2NormPruner, FPGMPruner
   config_list:
     - sparsity_per_layer: 0.5
       op_types: 
         - Conv2d
         - Linear
+    - exclude: True
+      op_names:
+        - outc.conv
+
   customized_replace_func: {}

@@ -8,7 +8,8 @@ from nni.runtime.log import silence_stdout, _root_logger  # noqa E402
 
 silence_stdout()
 _root_logger.handlers = []
-from nni.compression.pytorch.pruning import L1NormPruner  # noqa E402
+# from nni.compression.pytorch.pruning import L1NormPruner  # noqa E402
+from nni.compression.pytorch import pruning
 from nni.compression.pytorch.speedup import ModelSpeedup  # noqa E402
 
 
@@ -49,7 +50,8 @@ class Pruner:
             raise ValueError("currently cannot support 3d pruning!")
         self._get_network()
         dummy_input = torch.rand(1, *input_size).to(device)
-        pruner = L1NormPruner(
+        Pruner = getattr(pruning, self.pconfig["type"])
+        pruner = Pruner(
             self.network,
             self.pconfig["config_list"],
             mode="dependency_aware",
