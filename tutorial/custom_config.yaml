@@ -12,19 +12,19 @@ data:
     input_names: ['input']
     output_names: ['output']
 quantization:
-  type: PTQ # could be PTQ or QAT
+  type: QAT # could be PTQ or QAT
   backend: openvino # tensorrt or openvino
   run_mode: int8 #int8 or fp32
   extra_config:
     extra_qconfig_dict: 
       w_observer: EMAQuantileObserver
       a_observer: EMAQuantileObserver
-      w_fakequantize: FixedFakeQuantize
-      a_fakequantize: FixedFakeQuantize
+      w_fakequantize: LearnableFakeQuantize
+      a_fakequantize: LearnableFakeQuantize
       w_qscheme: 
         bit: 8
         symmetry: True
-        per_channel: False
+        per_channel: False  # Quantile observer only support in per-tensor scheme
         pot_scale: False
       a_qscheme: 
         bit: 8
@@ -41,7 +41,7 @@ prune:
       op_types: 
         - Conv2d
         - Linear
-    - exclude: True
+    - exclude: True  # exclude the output layer from being pruned.
       op_names:
         - outc.conv
 

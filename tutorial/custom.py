@@ -24,7 +24,7 @@ def train(model, dataloader, device=torch.device("cpu"), num_epoch=20):
     for i in range(num_epoch):
         epoch_loss = 0
         for j, batch_data in tenumerate(dataloader):
-            data, label = batch_data["img"], batch_data["seg"]
+            data, label = batch_data["img"].as_tensor(), batch_data["seg"].as_tensor()
             data, label = data.to(device), label.to(device)
             optimizer.zero_grad()
             out = model(data)
