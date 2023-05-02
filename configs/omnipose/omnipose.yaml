@@ -11,7 +11,7 @@ data:
     input_names: ['data']
     output_names: ['convout','style']
 quantization:
-  toolbox: mqbench
+  type: PTQ
   backend: openvino
   run_mode: int8
   extra_config:

@@ -12,7 +12,7 @@ data:
     input_names: ['input']
     output_names: ['output']
 quantization:
-  toolbox: mqbench #ppq or mqbench
+  type: PTQ # could be PTQ or QAT
   backend: openvino # tensorrt or openvino
   run_mode: fp32 #int8 or fp32
   extra_config:
