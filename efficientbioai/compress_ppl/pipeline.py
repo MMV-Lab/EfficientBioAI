@@ -77,6 +77,7 @@ class Pipeline:
             self.output_path,
             data,
             calibrate,
+            fine_tune,
         )
 
     def network2ir(self):

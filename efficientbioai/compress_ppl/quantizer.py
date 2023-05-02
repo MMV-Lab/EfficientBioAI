@@ -43,6 +43,30 @@ class Quantizer:
         else:
             raise NotImplementedError("model type not supported!")
 
+    def _quantize(
+        self,
+        data: Any,
+        fine_tune: Callable = None,
+        type: str = "PTQ",
+    ):
+        self._get_network()  # get the network to be quantized
+        if type.upper() == "PTQ":
+            enable_quantization(
+                self.network
+            )  # turn on actually quantization, ready for simulating Backend inference
+        elif type.upper() == "QAT":
+            assert (
+                fine_tune is not None
+            ), "fine_tune function should be provided for QAT!"
+            self.network.train()
+            self._set_network()
+            fine_tune(self.model, data, device=self.device)
+            self.network.eval()
+            self._get_network()
+            enable_quantization(self.network)
+        else:
+            raise NotImplementedError("quantization type not supported!")
+
     def __call__(
         self,
         input_size: List[int],
@@ -51,6 +75,7 @@ class Quantizer:
         output_path: Union[str, Path],
         data: Union[DataLoader, Sequence[Any], None] = None,
         calibrate: Callable = None,
+        fine_tune: Callable = None,
     ):
         """Quantize step implementation using MQBench api. Now only support int8 PTQ.
 
@@ -74,13 +99,21 @@ class Quantizer:
         self._get_network()
         if self.qconfig["run_mode"] == "int8":
             # since additional model type can only accept tuple. so we need to convert it to tuple.
-            extra_config = self.qconfig["extra_config"]
-            try:
-                extra_config["extra_quantizer_dict"]["additional_module_type"] = tuple(
-                    extra_config["extra_quantizer_dict"]["additional_module_type"]
-                )
-            except:  # noqa E722
-                pass
+            extra_config = {
+                "extra_qconfig_dict": self.qconfig["extra_config"][
+                    "extra_qconfig_dict"
+                ],
+                "extra_quantizer_dict": {
+                    "additional_module_type": (
+                        torch.nn.Conv3d,
+                        torch.nn.MaxPool3d,
+                        torch.nn.ConvTranspose3d,
+                    ),
+                    "additional_function_type": [
+                        torch.cat,
+                    ],
+                },
+            }
             self.network = prepare_by_platform(
                 self.network, backend, extra_config
             )  # trace model and add quant nodes for model on backend
@@ -91,10 +124,7 @@ class Quantizer:
             self.network = calibrate(
                 self.model, data, device=self.device
             )  # run calibration
-            self._get_network()
-            enable_quantization(
-                self.network
-            )  # turn on actually quantization, ready for simulating Backend inference
+            self._quantize(data, fine_tune=fine_tune, type=self.qconfig["type"])
             extra_kwargs = dict(
                 input_names=input_names,
                 output_names=output_names,
