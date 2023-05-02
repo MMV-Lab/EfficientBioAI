@@ -75,12 +75,27 @@ class Quantizer:
         if self.qconfig["run_mode"] == "int8":
             # since additional model type can only accept tuple. so we need to convert it to tuple.
             extra_config = self.qconfig["extra_config"]
-            try:
-                extra_config["extra_quantizer_dict"]["additional_module_type"] = tuple(
-                    extra_config["extra_quantizer_dict"]["additional_module_type"]
-                )
-            except:  # noqa E722
-                pass
+            # try:
+            #     extra_config["extra_quantizer_dict"]["additional_module_type"] = tuple(
+            #         extra_config["extra_quantizer_dict"]["additional_module_type"]
+            #     )
+            # except:  # noqa E722
+            #     pass
+            extra_config = {
+                "extra_qconfig_dict": self.qconfig["extra_config"][
+                    "extra_qconfig_dict"
+                ],
+                "extra_quantizer_dict": {
+                    "additional_module_type": (
+                        torch.nn.Conv3d,
+                        torch.nn.MaxPool3d,
+                        torch.nn.ConvTranspose3d,
+                    ),
+                    "additional_function_type": [
+                        torch.cat,
+                    ],
+                },
+            }
             self.network = prepare_by_platform(
                 self.network, backend, extra_config
             )  # trace model and add quant nodes for model on backend
