@@ -1,6 +1,6 @@
 import numpy as np
 from cellpose import io, metrics
-
+from codecarbon import track_emissions
 from efficientbioai.utils import timer
 from .base import BaseInfer
 
@@ -17,6 +17,18 @@ class OmniposeInfer(BaseInfer):
         self.data_dir = self.config.data_path
         self.images, self.masks, self.files = None, None, None
 
+    def prepare_data_without_gt(self):
+        img_names = io.get_image_files(
+            self.data_dir, mask_filter=self.config.mask_filter
+        )
+        self.images = []
+        for img_name in img_names:
+            img = io.imread(img_name)
+            img = img[
+                :, :, 0
+            ]  # only use the red channel, only for in house data in 2d instance segmentation task
+            self.images.append(img)
+
     def prepare_data(self):
         output = io.load_images_labels(
             tdir=self.data_dir,
@@ -31,6 +43,7 @@ class OmniposeInfer(BaseInfer):
         self.images = [img[:, :, 0] for img in self.images]
         self.masks = [f.astype(np.uint16) for f in self.masks]
 
+    @track_emissions(measure_power_secs=1)
     @timer
     def core_infer(self):
         masks, flows, _ = self.model.eval(
@@ -56,9 +69,11 @@ class OmniposeInfer(BaseInfer):
         )
 
     def run_infer(self):
-        self.prepare_data()
+        # self.prepare_data()
+        # self.core_infer()
+        # self.save_result()
+        self.prepare_data_without_gt()
         self.core_infer()
-        self.save_result()
 
     def evaluate(self):
         if self.masks is not None:  # if gt masks are provided, compute AP

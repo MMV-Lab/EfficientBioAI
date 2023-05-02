@@ -27,10 +27,11 @@ inference = infer_dict[model_name](config_yml=cfg_yml)
 # inference.run_infer()
 # inference.evaluate('./data/mmv_im2im/labelfree/pred','./data/mmv_im2im/labelfree/holdout','.tif','_GT.tiff',['SSIM','Pearson']) #currently only for mmv_im2im # noqa: E501
 # inference.calculate_infer_time(num= 100)
-# inference.calculate_energy(num= 1000)
+# inference.calculate_energy(num=100)
+inference.calculate_energy_latency(num=5)
 
 # for omnipose:
-inference.run_infer()
-inference.calculate_infer_time(num=1000)
-inference.evaluate()
-inference.calculate_energy(num=1000)
+# inference.run_infer()
+# inference.calculate_infer_time(num=1000)
+# inference.evaluate()
+# inference.calculate_energy(num=1000)
