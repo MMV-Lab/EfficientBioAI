@@ -12,6 +12,8 @@ _root_logger.handlers = []
 from nni.compression.pytorch import pruning
 from nni.compression.pytorch.speedup import ModelSpeedup  # noqa E402
 
+from efficientbioai.utils.logger import logger
+
 
 class Pruner:
     """class for pruning algorithm."""
@@ -41,13 +43,21 @@ class Pruner:
 
     def __call__(
         self,
-        input_size: List[int],
+        input_size: List[int],  # [C, H, W]
         data: Any,
         fine_tune: Callable,
         device: Optional[Union[str, torch.device]] = torch.device("cpu"),
     ) -> Any:
-        if len(input_size) > 3:
-            raise ValueError("currently cannot support 3d pruning!")
+        logger.info("start pruning with type:{}...".format(self.pconfig["type"]))
+        if not isinstance(input_size, list):
+            logger.error("Input 'input_size' should be a list")
+            raise TypeError("Input 'input_size' should be a list")
+        elif len(input_size) > 3:
+            error_message = " Currently Pruning is not supported for dimensions higher than 2D. Given input_size: {}".format(
+                input_size
+            )
+            logger.warning(error_message)
+            raise ValueError(error_message)
         self._get_network()
         dummy_input = torch.rand(1, *input_size).to(device)
         Pruner = getattr(pruning, self.pconfig["type"])
@@ -76,7 +86,9 @@ class Pruner:
             customized_replace_func=self.pconfig["customized_replace_func"],
         ).speedup_model()
         self._set_network()
+        logger.info("start fine-tuning to improve performance...")
         fine_tune(self.model, data, device)
+        logger.info("pruning finished!")
         return self.model
 
     @staticmethod

@@ -7,7 +7,8 @@ from pathlib import Path
 
 from .quantizer import Quantizer
 from .pruner import Pruner
-from efficientbioai.utils import Dict2ObjParser
+from efficientbioai.utils.misc import Dict2ObjParser
+from efficientbioai.utils.logger import logger
 
 _DEVICE = dict(openvino=torch.device("cpu"), tensorrt=torch.device("cuda"))
 
@@ -64,6 +65,9 @@ class Pipeline:
         self.device = _DEVICE[self.backend]
         self.run_mode = self.config.quantization.run_mode
         self.dynamic_batch = self.config.data.dynamic_batch
+        logger.info(
+            f"start to compress: quantize: {True if self.run_mode == 'int8' else False}, prune: {self.prune}, backend: {self.backend}, model_name: {self.model_name}"
+        )
         if self.prune:
             pruner = Pruner(model, self.model_name, self.config_dict["prune"])
             model = pruner(self.input_size, data, fine_tune, device=self.device)
@@ -98,9 +102,6 @@ class Pipeline:
             dynamic_file_path = os.path.join(
                 self.output_path, f"{self.model_name}_clip_ranges.json"
             )
-            print(
-                os.path.join(self.output_path, f"{self.model_name}_deploy_model.onnx")
-            )
             onnx2trt(
                 onnx_model=os.path.join(
                     self.output_path, f"{self.model_name}_deploy_model.onnx"
@@ -112,7 +113,7 @@ class Pipeline:
                 input_size=self.input_size,
                 dynamic_batch=self.dynamic_batch,
             )
-            print("transform done!")
+            logger.info("transform done!")
             # save the config file to the folder:
             self.config_dict["model"][self.model_name]["model_path"] = trt_path
             self.config_dict["quantization"]["dynamic_range_file"] = dynamic_file_path
@@ -157,7 +158,7 @@ class Pipeline:
                         self.output_path, f"{self.model_name}_deploy_model.{ext}"
                     ),
                 )
-            print("transform done!")
+            logger.info("transform done!")
 
         else:
             raise NotImplementedError("backend not supported!")

@@ -13,3 +13,4 @@ test/*
 **/*.pth
 **/*.tar.gz
 **/*.zip
+**/*.log

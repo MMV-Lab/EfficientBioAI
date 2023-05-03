@@ -1,7 +1,7 @@
 import numpy as np
 from cellpose import io, metrics
 
-from efficientbioai.utils import timer
+from efficientbioai.utils.misc import timer
 from .base import BaseInfer
 
 

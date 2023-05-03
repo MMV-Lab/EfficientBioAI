@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 from cellpose import io, models
 
 from .base import BaseParser
-from efficientbioai.utils import Dict2ObjParser
+from efficientbioai.utils.misc import Dict2ObjParser
 
 
 class OmniposeDataset(Dataset):
