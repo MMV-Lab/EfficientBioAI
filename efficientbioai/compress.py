@@ -1,14 +1,13 @@
 import os
 import shutil
 from functools import partial
-import logging
 import yaml
 import argparse
 from parse_info import Mmv_im2imParser, OmniposeParser
-from efficientbioai.utils import Dict2ObjParser
+from efficientbioai.utils.misc import Dict2ObjParser
 from efficientbioai.compress_ppl import Pipeline
+from efficientbioai.utils.logger import logger
 import warnings
-
 
 _PARSER_DICT = dict(
     mmv_im2im=lambda: Mmv_im2imParser, omnipose=lambda: OmniposeParser
@@ -17,14 +16,8 @@ _PARSER_DICT = dict(
 
 def main():
     warnings.simplefilter(action="ignore")
-    logging.basicConfig(
-        level=logging.WARNING,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%m/%d/%Y %H:%M:%S",
-    )  # five levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
-    # will only log the warning and above
 
-    parser = argparse.ArgumentParser(description="Run the quantization")
+    parser = argparse.ArgumentParser(description="Run the compression")
     parser.add_argument(
         "--cfg_path",
         type=str,
@@ -39,6 +32,8 @@ def main():
     )
     args = parser.parse_args()
 
+    logger.info("=" * 40)  # split the log between different runs
+    logger.info(f"start the experiment: {args.exp_path}")
     # ----------------------------------------------------------
     # 1. Read the config file and set the data/model:
     # ----------------------------------------------------------

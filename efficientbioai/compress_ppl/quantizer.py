@@ -2,13 +2,16 @@ import os
 from typing import Sequence, Any, Union, List, Callable
 from pathlib import Path
 import warnings
+
 import torch
 from torch.utils.data import DataLoader
+from mqbench.convert_deploy import convert_deploy
+from mqbench.prepare_by_platform import BackendType, prepare_by_platform
+from mqbench.utils.state import enable_calibration, enable_quantization
 
-from mqbench.convert_deploy import convert_deploy  # noqa E402
-from mqbench.prepare_by_platform import BackendType, prepare_by_platform  # noqa E402
-from mqbench.utils.state import enable_calibration, enable_quantization  # noqa E402
-from mqbench.utils.logger import logger
+from efficientbioai.utils.logger import logger
+
+warnings.filterwarnings("ignore")
 
 _BACKEND = dict(
     tensorrt=BackendType.Tensorrt,
@@ -29,10 +32,12 @@ class Quantizer:
         """extract the part in the torch module for quantization."""
         if self.model_type in ["mmv_im2im", "cellpose", "omnipose"]:
             self.network = self.model.net
-        elif self.model_type == "academic":
+        elif self.model_type == "academic":  # for the custom model
             self.network = self.model
         else:
-            raise NotImplementedError("model type not supported!")
+            err_msg = "model type not supported!"
+            logger.error(err_msg)
+            raise NotImplementedError(err_msg)
 
     def _set_network(self):
         """retrive the quantized network and insert back to the original model."""
@@ -41,7 +46,35 @@ class Quantizer:
         elif self.model_type == "academic":
             self.model = self.network
         else:
-            raise NotImplementedError("model type not supported!")
+            err_msg = "model type not supported!"
+            logger.error(err_msg)
+            raise NotImplementedError(err_msg)
+
+    def _quantize(
+        self,
+        data: Any,
+        fine_tune: Callable = None,
+        type: str = "PTQ",
+    ):
+        self._get_network()  # get the network to be quantized
+        if type.upper() == "PTQ":
+            enable_quantization(
+                self.network
+            )  # turn on actually quantization, ready for simulating Backend inference
+        elif type.upper() == "QAT":
+            assert (
+                fine_tune is not None
+            ), "fine_tune function should be provided for QAT!"
+            self.network.train()
+            self._set_network()
+            fine_tune(self.model, data, device=self.device)
+            self.network.eval()
+            self._get_network()
+            enable_quantization(self.network)
+        else:
+            err_msg = "quantization type not supported!"
+            logger.error(err_msg)
+            raise NotImplementedError(err_msg)
 
     def __call__(
         self,
@@ -51,8 +84,9 @@ class Quantizer:
         output_path: Union[str, Path],
         data: Union[DataLoader, Sequence[Any], None] = None,
         calibrate: Callable = None,
+        fine_tune: Callable = None,
     ):
-        """Quantize step implementation using MQBench api. Now only support int8 PTQ.
+        """Quantize step implementation using MQBench api.
 
         Args:
             input_size (List[int]): input size
@@ -62,9 +96,8 @@ class Quantizer:
             data (Union[DataLoader, Sequence[Any], None], optional): data for calibration. Defaults to None.
             calibrate (_type_, optional): calibration step, defined in the Parser class. Defaults to None.
         """
-        logger.handlers = []
-        logger.setLevel("CRITICAL")
-        warnings.filterwarnings("ignore")
+
+        logger.info("Start quantization...")
         input_shape = {
             input_names[0]: [1, *input_size]
         }  # batchsize+channel, ZYX. only consider 1 input senario.
@@ -74,13 +107,6 @@ class Quantizer:
         self._get_network()
         if self.qconfig["run_mode"] == "int8":
             # since additional model type can only accept tuple. so we need to convert it to tuple.
-            extra_config = self.qconfig["extra_config"]
-            # try:
-            #     extra_config["extra_quantizer_dict"]["additional_module_type"] = tuple(
-            #         extra_config["extra_quantizer_dict"]["additional_module_type"]
-            #     )
-            # except:  # noqa E722
-            #     pass
             extra_config = {
                 "extra_qconfig_dict": self.qconfig["extra_config"][
                     "extra_qconfig_dict"
@@ -106,10 +132,7 @@ class Quantizer:
             self.network = calibrate(
                 self.model, data, device=self.device
             )  # run calibration
-            self._get_network()
-            enable_quantization(
-                self.network
-            )  # turn on actually quantization, ready for simulating Backend inference
+            self._quantize(data, fine_tune=fine_tune, type=self.qconfig["type"])
             extra_kwargs = dict(
                 input_names=input_names,
                 output_names=output_names,
@@ -134,3 +157,4 @@ class Quantizer:
                 output_names=output_names,
                 dynamic_axes=dynamic_axes,
             )
+        logger.info("Quantization finished!")

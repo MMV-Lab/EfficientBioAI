@@ -1,7 +1,8 @@
 import numpy as np
 from cellpose import io, metrics
 from codecarbon import track_emissions
-from efficientbioai.utils import timer
+from efficientbioai.utils.misc import timer
+
 from .base import BaseInfer
 
 

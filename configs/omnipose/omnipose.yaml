@@ -11,7 +11,7 @@ data:
     input_names: ['data']
     output_names: ['convout','style']
 quantization:
-  toolbox: mqbench
+  type: PTQ
   backend: openvino
   run_mode: int8
   extra_config:
@@ -38,6 +38,7 @@ quantization:
       additional_function_type: 
         - torch.cat
 prune:
+  type: L1NormPruner # could be LevelPruner, L1NormPruner, L2NormPruner, FPGMPruner
   config_list:
     - sparsity_per_layer: 0.5
       op_types: 

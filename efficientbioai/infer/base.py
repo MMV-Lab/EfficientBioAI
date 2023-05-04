@@ -7,7 +7,7 @@ from codecarbon import EmissionsTracker
 
 # from .backend import create_opv_model, create_trt_model
 from efficientbioai.parse_info import Mmv_im2imParser, OmniposeParser
-from efficientbioai.utils import Dict2ObjParser, AverageMeter
+from efficientbioai.utils.misc import Dict2ObjParser, AverageMeter
 
 _DEVICE = dict(openvino=torch.device("cpu"), tensorrt=torch.device("cuda"))
 _PARSER = dict(omnipose=OmniposeParser, mmv_im2im=Mmv_im2imParser)

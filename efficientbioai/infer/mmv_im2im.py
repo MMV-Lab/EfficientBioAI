@@ -14,7 +14,7 @@ from mmv_im2im.utils.misc import generate_test_dataset_dict
 from mmv_im2im.utils.for_transform import parse_monai_ops_vanilla
 from codecarbon import EmissionsTracker, track_emissions
 
-from efficientbioai.utils import AverageMeter
+from efficientbioai.utils.misc import AverageMeter
 from .base import BaseInfer
 
 

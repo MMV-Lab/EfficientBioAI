@@ -2,6 +2,7 @@ from collections import namedtuple
 import functools
 import time
 import torch
+from logging import getLogger
 
 
 # adapted from https://stackoverflow.com/questions/6866600/how-to-parse-read-a-yaml-file-into-a-python-object # noqa: E501
