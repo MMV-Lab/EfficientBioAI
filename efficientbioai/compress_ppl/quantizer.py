@@ -105,7 +105,7 @@ class Quantizer:
         dynamic_axes = {k: {0: "batch_size"} for k in io_names}
         backend = _BACKEND[self.qconfig["backend"]]
         self._get_network()
-        if self.qconfig["run_mode"] == "int8":
+        if self.qconfig["run_mode"] in ["int8", "int4"]:
             # since additional model type can only accept tuple. so we need to convert it to tuple.
             extra_config = {
                 "extra_qconfig_dict": self.qconfig["extra_config"][

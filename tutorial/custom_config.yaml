@@ -12,9 +12,9 @@ data:
     input_names: ['input']
     output_names: ['output']
 quantization:
-  type: QAT # could be PTQ or QAT
+  type: PTQ # could be PTQ or QAT
   backend: openvino # tensorrt or openvino
-  run_mode: int8 #int8 or fp32
+  run_mode: int4 #int4, int8 or fp32
   extra_config:
     extra_qconfig_dict: 
       w_observer: EMAQuantileObserver
@@ -22,27 +22,27 @@ quantization:
       w_fakequantize: LearnableFakeQuantize
       a_fakequantize: LearnableFakeQuantize
       w_qscheme: 
-        bit: 8
+        bit: 4
         symmetry: True
         per_channel: False  # Quantile observer only support in per-tensor scheme
         pot_scale: False
       a_qscheme: 
-        bit: 8
+        bit: 4
         symmetry: True
         per_channel: False
         pot_scale: False
     extra_quantizer_dict:
       additional_function_type: 
         - torch.cat
-prune:
-  type: L1NormPruner # could be LevelPruner, L1NormPruner, L2NormPruner, FPGMPruner
-  config_list:
-    - sparsity_per_layer: 0.5
-      op_types: 
-        - Conv2d
-        - Linear
-    - exclude: True  # exclude the output layer from being pruned.
-      op_names:
-        - outc.conv
+# prune:
+#   type: L1NormPruner # could be LevelPruner, L1NormPruner, L2NormPruner, FPGMPruner
+#   config_list:
+#     - sparsity_per_layer: 0.5
+#       op_types: 
+#         - Conv2d
+#         - Linear
+#     - exclude: True  # exclude the output layer from being pruned.
+#       op_names:
+#         - outc.conv
 
-  customized_replace_func: {}
+#   customized_replace_func: {}

@@ -26,7 +26,7 @@ def onnx2trt(
         trt_path (str): path to save tensorrt engine model
         log_level (Any, optional): Log level. Defaults to trt.Logger.ERROR. # noqa: E501
         max_workspace_size (int, optional): builder workspace size. Defaults to 1<<30.
-        mode (str): int8 or fp32. Defaults to "fp32".
+        mode (str): int4, int8 or fp32. Defaults to "fp32".
         dynamic_range_file (Union[str, Path, None]): file that stores calibration info(i.e. zero point, scale). Defaults to None.
         input_names (Optional[List[str]]): Defaults to None.
         input_size (Optional[List[int]]): Defaults to None.
@@ -65,8 +65,14 @@ def onnx2trt(
     config = builder.create_builder_config()
     config.max_workspace_size = max_workspace_size
 
-    if mode == "int8":
-        config.set_flag(trt.BuilderFlag.INT8)
+    if "int" in mode:
+        if mode == "int4":
+            config.set_flag(trt.BuilderFlag.INT4)
+        elif mode == "int8":
+            config.set_flag(trt.BuilderFlag.INT8)
+        else:
+            raise ValueError(f"Unsupported mode: {mode}")
+
         if dynamic_range_file:
             with open(dynamic_range_file, "r") as f:
                 dynamic_range = json.load(f)["tensorrt"]["blob_range"]

@@ -23,9 +23,8 @@ class Pipeline:
 
     @classmethod
     def setup(cls, config_dict: dict):
-        if (
-            "prune" in config_dict.keys()
-            and config_dict["quantization"]["run_mode"] == "int8"
+        if "prune" in config_dict.keys() and (
+            config_dict["quantization"]["run_mode"] in ["int8", "int4"]
         ):
             return cls(config_dict, True, True)
         elif (
@@ -33,9 +32,8 @@ class Pipeline:
             and config_dict["quantization"]["run_mode"] == "fp32"
         ):
             return cls(config_dict, True, False)
-        elif (
-            "prune" not in config_dict.keys()
-            and config_dict["quantization"]["run_mode"] == "int8"
+        elif "prune" not in config_dict.keys() and (
+            config_dict["quantization"]["run_mode"] in ["int8", "int4"]
         ):
             return cls(config_dict, False, True)
         elif (
