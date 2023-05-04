@@ -19,8 +19,8 @@ quantization:
     extra_qconfig_dict: 
       w_observer: EMAQuantileObserver
       a_observer: EMAQuantileObserver
-      w_fakequantize: LearnableFakeQuantize
-      a_fakequantize: LearnableFakeQuantize
+      w_fakequantize: FixedFakeQuantize
+      a_fakequantize: FixedFakeQuantize
       w_qscheme: 
         bit: 8
         symmetry: True

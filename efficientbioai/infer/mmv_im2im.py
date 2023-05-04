@@ -12,6 +12,7 @@ from monai.inferers import sliding_window_inference
 from tqdm.contrib import tenumerate
 from mmv_im2im.utils.misc import generate_test_dataset_dict
 from mmv_im2im.utils.for_transform import parse_monai_ops_vanilla
+from codecarbon import EmissionsTracker, track_emissions
 
 from efficientbioai.utils.misc import AverageMeter
 from .base import BaseInfer
@@ -204,7 +205,9 @@ class Mmv_im2imInfer(BaseInfer):
                     )
                 else:
                     y_hat = self.model(x)
-                infer_time.update(time.time() - end)
+                latency = time.time() - end
+                print(f"latency for {fn_core} is {latency:.3f}")
+                infer_time.update(latency)
                 pred = y_hat.squeeze(0).squeeze(0).numpy()
                 out_fn = (
                     Path(self.data_cfg.inference_output.path)
@@ -213,3 +216,29 @@ class Mmv_im2imInfer(BaseInfer):
                 self.save_result(pred, out_fn)
         avg_infer_time = infer_time.avg
         print(f"average inference time is {avg_infer_time:.3f}")
+
+    @track_emissions(measure_power_secs=1)
+    def calculate_energy_latency(
+        self, num: int = 5, image_size: Sequence[int] = (95, 1024, 1024)
+    ):
+        """calculate energy consumption and latency using whole images. The energy value is based on codecarbon package.
+
+        Args:
+            num (int): number of patches to be inferenced.
+            image_size (Sequence[int]): size of the image.
+        """
+        infer_time = AverageMeter()
+        with torch.no_grad():
+            for i in range(num):
+                end = time.time()
+                input = torch.randn(
+                    1, 1, *image_size, device=self.device
+                )  # size of the image for 3d denoising task
+                sliding_window_inference(
+                    inputs=input,
+                    predictor=self.model,
+                    device=torch.device("cpu"),
+                    **self.model_cfg.model_extra["sliding_window_params"],
+                )
+                infer_time.update(time.time() - end)
+        print(f"average inference time is {infer_time.avg:.3f}")
