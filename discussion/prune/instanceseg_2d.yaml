@@ -1,0 +1,14 @@
+data_path: "data/omnipose/in_house_data/test/"
+compress_data_path: "data/omnipose/in_house_data/train/"
+image_filter: ''
+mask_filter: '_masks'
+omni: False
+dim: 2
+pretrained_model: "model/omnipose/cellpose_residual_on_style_on_concatenation_off_train_data_2023_01_10_10_16_20.395475"
+model_type: 'cyto2'
+diameter: 13.743
+channels: [1,0]
+flow_threshold: 0.4
+cellprob_threshold: 0
+mask_threshold: -1
+

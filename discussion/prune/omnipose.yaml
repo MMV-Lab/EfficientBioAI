@@ -1,0 +1,53 @@
+model:
+  model_name: omnipose
+  omnipose:
+    task: instance_seg
+    model_type: cyto2
+    config_path: "discussion/prune/instanceseg_2d.yaml"
+data:
+  input_size: [2,224,224] 
+  dynamic_batch: [1,4,8]
+  io:
+    input_names: ['data']
+    output_names: ['convout','style']
+quantization:
+  type: PTQ
+  backend: openvino
+  run_mode: int8
+  extra_config:
+    extra_qconfig_dict: 
+      w_observer: EMAQuantileObserver
+      a_observer: EMAQuantileObserver
+      w_fakequantize: LearnableFakeQuantize
+      a_fakequantize: LearnableFakeQuantize
+      w_qscheme: 
+        bit: 8
+        symmetry: True
+        per_channel: False
+        pot_scale: False
+      a_qscheme: 
+        bit: 8
+        symmetry: True
+        per_channel: False
+        pot_scale: False
+    extra_quantizer_dict: 
+      additional_module_type: 
+        - torch.nn.Conv3d
+        - torch.nn.ConvTranspose3d
+        - torch.nn.MaxPool3d
+      additional_function_type: 
+        - torch.cat
+prune:
+  type: L1NormPruner # could be LevelPruner, L1NormPruner, L2NormPruner, FPGMPruner
+  config_list:
+    - sparsity_per_layer: 0.5
+      op_types: 
+        - Conv2d
+        - Linear
+    - exclude: True
+      op_names:
+        - output.2
+        - output
+        - output.1
+        - downsample.down.res_down_3.conv.conv_3.2
+  customized_replace_func: {}

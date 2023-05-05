@@ -2,7 +2,7 @@ import yaml
 import argparse
 
 from efficientbioai.utils.misc import Dict2ObjParser
-from infer import Mmv_im2imInfer, OmniposeInfer
+from efficientbioai.infer import Mmv_im2imInfer, OmniposeInfer
 
 parser = argparse.ArgumentParser(description="Run the inference")
 parser.add_argument(
