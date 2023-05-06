@@ -62,8 +62,10 @@ for type in pruner_type:
         # tensorrt: .engine
         # ----------------------------------------------------------
         pipeline.network2ir()
-
         # ----------------------------------------------------------
         # 4. Do the inference:
         # ----------------------------------------------------------
-        inference = infer_dict[model_name](config_yml=config_yml)
+        config_yml["data"]["save_path"] = exp_path
+        infer = infer_dict[model_name](config_yml=config_yml)
+        infer.run_infer()
+        infer.calculate_latency_energy()
