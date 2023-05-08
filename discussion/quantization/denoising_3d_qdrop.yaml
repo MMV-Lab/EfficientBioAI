@@ -1,0 +1,50 @@
+model:
+  model_name: mmv_im2im #currently, could be mmv_im2im, cellpose, omnipose
+  mmv_im2im:
+    task: denoising
+    model_type: FCN
+    config_path: "configs/mmv_im2im/denoising_3d_inference.yaml"
+data:
+  data_path: "data/mmv_im2im/denoise/test/im"
+  input_size: [1,32,128,128] #should be the same in labelfree_3d_deploy.yaml. channel+ZYX
+  dynamic_batch: [1,4,8] # min, opt, max
+  io:
+    input_names: ['input']
+    output_names: ['output']
+quantization:
+  type: advanced_ptq
+  backend: openvino
+  run_mode: int8
+  reconstruction:  # only for advanced PTQ, like QDrop, AdaRound, BRECQ
+    pattern: block  # 'layer' for Adaround or 'block' for BRECQ and QDROP
+    scale_lr: 4.0e-5
+    warm_up: 0.2
+    weight: 0.01
+    max_count: 5000
+    b_range: [20,2]
+    keep_gpu: True
+    round_mode: learned_hard_sigmoid
+    prob: 0.5  # for QDrop, 1 for AdaRound and BRECQ
+  extra_config:
+    extra_qconfig_dict: 
+      w_observer: MSEObserver
+      a_observer: EMAMSEObserver
+      w_fakequantize: AdaRoundFakeQuantize
+      a_fakequantize: QDropFakeQuantize
+      w_qscheme: 
+        bit: 8
+        symmetry: True
+        per_channel: False
+        pot_scale: False
+      a_qscheme: 
+        bit: 8
+        symmetry: True
+        per_channel: False
+        pot_scale: False
+    extra_quantizer_dict: 
+      additional_module_type: 
+        - torch.nn.Conv3d
+        - torch.nn.ConvTranspose3d
+        - torch.nn.MaxPool3d
+      additional_function_type: 
+        - torch.cat

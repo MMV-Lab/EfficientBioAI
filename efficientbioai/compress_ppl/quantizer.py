@@ -8,8 +8,10 @@ from torch.utils.data import DataLoader
 from mqbench.convert_deploy import convert_deploy
 from mqbench.prepare_by_platform import BackendType, prepare_by_platform
 from mqbench.utils.state import enable_calibration, enable_quantization
+from mqbench.advanced_ptq import ptq_reconstruction
 
 from efficientbioai.utils.logger import logger
+from efficientbioai.utils.misc import Dict2ObjParser
 
 warnings.filterwarnings("ignore")
 
@@ -70,6 +72,18 @@ class Quantizer:
             fine_tune(self.model, data, device=self.device)
             self.network.eval()
             self._get_network()
+            enable_quantization(self.network)
+        elif type.upper() == "ADVANCED_PTQ":
+            reconst_data = []
+            for i, x in enumerate(data):
+                reconst_data.append(x.as_tensor())
+                if i >= 4:  # TODO: add the reconstruct data number as a parameter
+                    break
+            self.network = ptq_reconstruction(
+                self.network,
+                reconst_data,
+                Dict2ObjParser(self.qconfig["reconstruction"]).parse(),
+            )
             enable_quantization(self.network)
         else:
             err_msg = "quantization type not supported!"
