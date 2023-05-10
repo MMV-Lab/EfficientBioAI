@@ -1,0 +1,41 @@
+model:
+  model_name: mmv_im2im #currently, could be mmv_im2im, cellpose, omnipose
+  mmv_im2im:
+    task: semanticseg
+    model_type: FCN
+    config_path: "configs/mmv_im2im/semanticseg_3d_inference.yaml"
+data:
+  data_path: "/home/ISAS.DE/yu.zhou/EfficientBioAI/data/mmv_im2im/semanticseg/train/IM"
+  input_size: [1,32,128,128] #should be the same in labelfree_3d_deploy.yaml. channel+ZYX
+  dynamic_batch: [1,4,8] # min, opt, max
+  io:
+    input_names: ['input']
+    output_names: ['output']
+quantization:
+  type: PTQ # could be PTQ or QAT
+  backend: tensorrt # tensorrt or openvino
+  run_mode: int8 #int8 or fp32
+  extra_config:
+    extra_qconfig_dict: 
+      w_observer: EMAQuantileObserver
+      a_observer: EMAQuantileObserver
+      w_fakequantize: FixedFakeQuantize
+      a_fakequantize: FixedFakeQuantize
+      w_qscheme: 
+        bit: 8
+        symmetry: True
+        per_channel: False
+        pot_scale: False
+      a_qscheme: 
+        bit: 8
+        symmetry: True
+        per_channel: False
+        pot_scale: False
+    extra_quantizer_dict: 
+      additional_module_type: 
+        - torch.nn.Conv3d
+        - torch.nn.ConvTranspose3d
+        - torch.nn.MaxPool3d
+      additional_function_type: 
+        - torch.cat
+

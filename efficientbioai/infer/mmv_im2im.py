@@ -10,7 +10,7 @@ from skimage.io import imsave as save_rgb
 from torchmetrics import Dice, StructuralSimilarityIndexMeasure, PearsonCorrCoef
 from monai.inferers import sliding_window_inference
 from tqdm.contrib import tenumerate
-from mmv_im2im.utils.misc import generate_test_dataset_dict
+from mmv_im2im.utils.misc import generate_test_dataset_dict, parse_config
 from mmv_im2im.utils.for_transform import parse_monai_ops_vanilla
 from codecarbon import EmissionsTracker, track_emissions
 
@@ -208,7 +208,17 @@ class Mmv_im2imInfer(BaseInfer):
                 latency = time.time() - end
                 print(f"latency for {fn_core} is {latency:.3f}")
                 infer_time.update(latency)
-                pred = y_hat.squeeze(0).squeeze(0).numpy()
+                if self.data_cfg.postprocess is not None:
+                    pp_data = y_hat
+                    for pp_info in self.data_cfg.postprocess:
+                        pp = parse_config(pp_info)
+                        pp_data = pp(pp_data)
+                    if torch.is_tensor(pp_data):
+                        pred = pp_data.cpu().numpy()
+                    else:
+                        pred = pp_data
+                else:
+                    pred = y_hat.cpu().numpy()
                 out_fn = (
                     Path(self.data_cfg.inference_output.path)
                     / f"{fn_core}.tif"  # need to add _{suffix} if input and output path are different.

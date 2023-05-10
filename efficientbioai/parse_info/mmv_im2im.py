@@ -16,6 +16,7 @@ from tqdm.contrib import tenumerate
 from monai.transforms import RandSpatialCropSamples
 from monai.data import DataLoader, Dataset
 from .base import BaseParser
+from efficientbioai.utils.logger import logger
 
 T = TypeVar("T")
 
