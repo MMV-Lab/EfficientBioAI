@@ -89,6 +89,7 @@ def create_trt_model(trt_path: Union[str, Path]) -> TRTModule:
     Returns:
         TRTModule: trt engine
     """
+    trt.init_libnvinfer_plugins(None, "")
     with open(trt_path, "rb") as f, trt.Runtime(logger) as runtime:
         engine = runtime.deserialize_cuda_engine(f.read())
     input_name = []

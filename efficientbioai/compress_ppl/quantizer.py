@@ -148,13 +148,18 @@ class Quantizer:
                 **extra_kwargs,
             )
         else:  # run in fp32 mode.
-            torch.onnx.export(
-                self.network,
-                torch.randn(1, *input_size),
-                os.path.join(output_path, f"{self.model_type}_deploy_model.onnx"),
-                opset_version=11,
-                input_names=input_names,
-                output_names=output_names,
-                dynamic_axes=dynamic_axes,
-            )
+            logger.info("Running in fp32 mode...")
+            self.network.eval()
+            with torch.no_grad():
+                torch.onnx.export(
+                    self.network,
+                    torch.randn(1, *input_size),
+                    os.path.join(output_path, f"{self.model_type}_deploy_model.onnx"),
+                    verbose=True,
+                    opset_version=14,
+                    input_names=input_names,
+                    output_names=output_names,
+                    do_constant_folding=True,
+                    dynamic_axes=dynamic_axes,
+                )
         logger.info("Quantization finished!")
