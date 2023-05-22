@@ -11,7 +11,7 @@ class OmniposeInfer(BaseInfer):
 
     def __init__(self, config_yml) -> None:  # define the model
         super().__init__(config_yml)
-        model = self.parser.parse_model()
+        model = self.parser.parse_model(self.device)
         model.mkldnn = False
         model.net = self.network
         self.model = model

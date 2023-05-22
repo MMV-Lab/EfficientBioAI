@@ -86,7 +86,7 @@ class Mmv_im2imParser(BaseParser):
     def config(self):
         return self.args
 
-    def parse_model(self):
+    def parse_model(self, device=torch.device("cuda")):
         model_category = self.model_cfg.framework
         model_module = import_module(f"mmv_im2im.models.pl_{model_category}")
         my_model_func = getattr(model_module, "Model")

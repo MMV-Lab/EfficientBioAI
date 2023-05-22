@@ -36,38 +36,38 @@ class OmniposeParser(BaseParser):
         with open(self.meta_config.model.omnipose.config_path, "r") as stream:
             yml_file = yaml.safe_load(stream)
             self.args = Dict2ObjParser(yml_file).parse()
+        self.use_gpu = (
+            self.meta_config.quantization.backend == "tensorrt"
+            and torch.cuda.is_available()
+        )
 
     @property
     def config(self):
         return self.args
 
-    def parse_model(self):
+    def parse_model(self, device=torch.device("cpu")):
         """parse cellpose/omnipose model. read the pretrained model if it exists.
 
         Returns:
             model: _description_
         """
-        use_gpu = (
-            self.meta_config.quantization.backend == "tensorrt"
-            and torch.cuda.is_available()
-        )
-        self.device = torch.device("cuda" if use_gpu else "cpu")
+
         if self.args.pretrained_model is not None and os.path.exists(
             self.args.pretrained_model
         ):
             self.model = models.CellposeModel(
-                gpu=use_gpu,
+                gpu=self.use_gpu,
                 pretrained_model=self.args.pretrained_model,
-                device=self.device,
+                device=device,
             )
             self.model.net.load_model(
                 self.args.pretrained_model,
                 #   cpu=not self.args.use_gpu,
-                device=self.device,
+                device=device,
             )
         else:
             self.model = models.CellposeModel(
-                gpu=use_gpu,
+                gpu=self.use_gpu,
                 model_type=self.args.model_type,
                 # omni=self.args.omni,
                 dim=self.args.dim,

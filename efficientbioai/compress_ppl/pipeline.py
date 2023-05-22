@@ -68,11 +68,15 @@ class Pipeline:
         logger.info(
             f"start to compress: quantize: {True if self.run_mode == 'int8' else False}, prune: {self.prune}, backend: {self.backend}, model_name: {self.model_name}"
         )
+        # the prune and quantize process can only be done on cpu.
         if self.prune:
             pruner = Pruner(model, self.model_name, self.config_dict["prune"])
-            model = pruner(self.input_size, data, fine_tune, device=self.device)
+            model = pruner(self.input_size, data, fine_tune, device=torch.device("cpu"))
         quantizer = Quantizer(
-            model, self.model_name, self.config_dict["quantization"], self.device
+            model,
+            self.model_name,
+            self.config_dict["quantization"],
+            torch.device("cpu"),
         )
         quantizer(
             self.input_size,

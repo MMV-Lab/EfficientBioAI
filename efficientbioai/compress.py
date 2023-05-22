@@ -3,6 +3,7 @@ import shutil
 from functools import partial
 import yaml
 import argparse
+import torch
 from parse_info import Mmv_im2imParser, OmniposeParser
 from efficientbioai.utils.misc import Dict2ObjParser
 from efficientbioai.compress_ppl import Pipeline
@@ -48,7 +49,9 @@ def main():
     shutil.copy(config_path, exp_path)
 
     parser = _PARSER_DICT[model_name]()(config)
-    model = parser.parse_model()
+    model = parser.parse_model(
+        device=torch.device("cpu")
+    )  # prune and quantize can only be done on cpu
     data = parser.parse_data()
     calibrate = partial(parser.calibrate, args=parser.args)
     fine_tune = partial(parser.fine_tune, args=parser.args)
