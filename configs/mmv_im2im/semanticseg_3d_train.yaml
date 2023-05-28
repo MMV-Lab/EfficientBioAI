@@ -90,14 +90,4 @@ trainer:
     accelerator: "gpu"
     devices: 1
     precision: 16
-    max_epochs: 10000
-    detect_anomaly: True
-  callbacks:
-    - module_name: pytorch_lightning.callbacks.model_checkpoint
-      func_name: ModelCheckpoint
-      params:
-        monitor: 'val_loss'
-        filename: '{epoch}-{val_loss:.5f}'
-        save_top_k: 2
-        save_last: True
-        save_weights_only: True 
+    max_epochs: 100

@@ -9,12 +9,14 @@ from mmv_im2im.configs.config_base import (
 from typing import Dict, List, Sequence, Text, Type, Union, TypeVar, Generic, Optional
 from pyrallis import utils, cfgparsing
 from pyrallis.parsers import decoding
-from mmv_im2im.utils.misc import generate_test_dataset_dict
+from mmv_im2im.utils.misc import generate_test_dataset_dict, parse_ops_list
 from mmv_im2im.utils.for_transform import parse_monai_ops_vanilla
+from mmv_im2im.data_modules import get_data_module
 import torch
 from tqdm.contrib import tenumerate
 from monai.transforms import RandSpatialCropSamples
 from monai.data import DataLoader, Dataset
+import pytorch_lightning as pl
 from .base import BaseParser
 from efficientbioai.utils.logger import logger
 
@@ -77,6 +79,7 @@ class Mmv_im2imParser(BaseParser):
         self.args = configuration_validation(self.args)
         self.data_cfg = self.args.data
         self.model_cfg = self.args.model
+        self.train_cfg = self.args.trainer
         # define variables
         self.model = None
         self.data = None
@@ -97,24 +100,37 @@ class Mmv_im2imParser(BaseParser):
         return self.model
 
     def parse_data(self):
-        crop = RandSpatialCropSamples(
-            roi_size=self.meta_config.data.input_size[-3:],
-            num_samples=6,
-            random_size=False,
-        )
-        dataset = Mmv_im2imDataset(self.data_cfg, transform=crop)
-        dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
-        return dataloader
+        # crop = RandSpatialCropSamples(
+        #     roi_size=self.meta_config.data.input_size[-3:],
+        #     num_samples=6,
+        #     random_size=False,
+        # )
+        # dataset = Mmv_im2imDataset(self.data_cfg, transform=crop)
+        # dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
+        # return dataloader
+
+        data = get_data_module(self.data_cfg)
+        return data
+
 
     @staticmethod
     def fine_tune(model, data, device, args):
-        pass
+        # set up training
+        if self.train_cfg.callbacks is None:
+            callback_list = []
+        else:
+            callback_list = parse_ops_list(self.train_cfg.callbacks)
+        trainer = pl.Trainer(callbacks=callback_list, **self.train_cfg.params)
+        logger.info("Start fine tuning...")
+        trainer.fit(model, data)
+        logger.info("Fine tuning finished.")
+        return model.net
 
     @staticmethod
     def calibrate(model, data, calib_num=4, device=torch.device("cpu"), args=None):
         with torch.no_grad():
             for i, x in tenumerate(data):
-                model.net(x.as_tensor())
+                model.net(x['IM'].as_tensor())
                 if i >= calib_num:
                     break
         return model.net

@@ -66,20 +66,6 @@ model:
 trainer:
   verbose: True
   params:
-    gpus: 2
+    gpus: 1
     precision: 16
-    max_epochs: 10000
-  callbacks:
-    - module_name: pytorch_lightning.callbacks.early_stopping
-      func_name: EarlyStopping
-      params:
-        monitor: 'val_loss'
-        patience: 50 
-    - module_name: pytorch_lightning.callbacks.model_checkpoint
-      func_name: ModelCheckpoint
-      params:
-        monitor: 'val_loss'
-        filename: '{epoch}-{val_loss:.5f}'
-        save_top_k: 2
-        save_last: True
-        save_weights_only: True 
+    max_epochs: 100

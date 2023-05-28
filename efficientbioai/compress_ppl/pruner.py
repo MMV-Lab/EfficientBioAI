@@ -52,12 +52,12 @@ class Pruner:
         if not isinstance(input_size, list):
             logger.error("Input 'input_size' should be a list")
             raise TypeError("Input 'input_size' should be a list")
-        elif len(input_size) > 3:
-            error_message = " Currently Pruning is not supported for dimensions higher than 2D. Given input_size: {}".format(
-                input_size
-            )
-            logger.warning(error_message)
-            raise ValueError(error_message)
+        # elif len(input_size) > 3:
+        #     error_message = " Currently Pruning is not supported for dimensions higher than 2D. Given input_size: {}".format(
+        #         input_size
+        #     )
+        #     logger.warning(error_message)
+        #     raise ValueError(error_message)
         self._get_network()
         dummy_input = torch.rand(1, *input_size).to(device)
         Pruner = getattr(pruning, self.pconfig["type"])
