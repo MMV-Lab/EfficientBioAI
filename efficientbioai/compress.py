@@ -50,7 +50,7 @@ def main():
 
     parser = _PARSER_DICT[model_name]()(config)
     model = parser.parse_model(
-        device=torch.device("cpu")
+        device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     )  # prune and quantize can only be done on cpu
     data = parser.parse_data()
     calibrate = partial(parser.calibrate, args=parser.args)

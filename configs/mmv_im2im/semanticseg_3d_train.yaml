@@ -2,7 +2,7 @@ mode: train
 
 data:
   category: "pair"
-  data_path: '/home/ISAS.DE/yu.zhou/EfficientBioAI/data/mmv_im2im/semanticseg/train'
+  data_path: '/mnt/data/ISAS.DE/yu.zhou/Yu/sandbox/EfficientBioAI/data/mmv_im2im/semanticseg/train'
   dataloader:
     train:
       dataloader_params:
@@ -54,6 +54,7 @@ data:
 
 model:
   framework: FCN
+  checkpoint: model/mmv_im2im/semanticseg_3d.ckpt
   net:
     module_name: monai.networks.nets
     func_name: DynUnet

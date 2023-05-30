@@ -3,9 +3,9 @@ model:
   mmv_im2im:
     task: semanticseg
     model_type: FCN
-    config_path: "configs/mmv_im2im/semanticseg_3d_inference.yaml"
+    config_path: "configs/mmv_im2im/semanticseg_3d_train.yaml"
 data:
-  data_path: "/home/ISAS.DE/yu.zhou/EfficientBioAI/data/mmv_im2im/semanticseg/train/IM"
+  data_path: "data/mmv_im2im/semanticseg/train"
   input_size: [1,32,128,128] #should be the same in labelfree_3d_deploy.yaml. channel+ZYX
   dynamic_batch: [1,4,8] # min, opt, max
   io:
@@ -14,8 +14,8 @@ data:
 
 quantization:
   type: PTQ # could be PTQ or QAT
-  backend: openvino # tensorrt or openvino
-  run_mode: fp32 #int8 or fp32
+  backend: tensorrt # tensorrt or openvino
+  run_mode: int8 #int8 or fp32
   extra_config:
     extra_qconfig_dict: 
       w_observer: EMAQuantileObserver

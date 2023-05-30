@@ -1,5 +1,6 @@
 import numpy as np
 from pathlib import Path
+import shutil
 from aicsimageio import AICSImage
 from importlib import import_module
 from mmv_im2im.configs.config_base import (
@@ -93,10 +94,9 @@ class Mmv_im2imParser(BaseParser):
         model_category = self.model_cfg.framework
         model_module = import_module(f"mmv_im2im.models.pl_{model_category}")
         my_model_func = getattr(model_module, "Model")
-        self.model = my_model_func(self.model_cfg, train=False)
+        self.model = my_model_func(self.model_cfg, train=True)
         pre_train = torch.load(self.model_cfg.checkpoint)
         self.model.load_state_dict(pre_train["state_dict"])
-        self.model.eval()
         return self.model
 
     def parse_data(self):
@@ -108,7 +108,6 @@ class Mmv_im2imParser(BaseParser):
         # dataset = Mmv_im2imDataset(self.data_cfg, transform=crop)
         # dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
         # return dataloader
-
         data = get_data_module(self.data_cfg)
         return data
 
@@ -116,20 +115,21 @@ class Mmv_im2imParser(BaseParser):
     @staticmethod
     def fine_tune(model, data, device, args):
         # set up training
-        if self.train_cfg.callbacks is None:
-            callback_list = []
-        else:
-            callback_list = parse_ops_list(self.train_cfg.callbacks)
-        trainer = pl.Trainer(callbacks=callback_list, **self.train_cfg.params)
+        params = {'accelerator':'gpu', 'max_epochs':10, 'precision':16, 'devices':1}
+        trainer = pl.Trainer(callbacks=[], **params)
         logger.info("Start fine tuning...")
         trainer.fit(model, data)
         logger.info("Fine tuning finished.")
+        shutil.rmtree('tmp/')
         return model.net
 
     @staticmethod
     def calibrate(model, data, calib_num=4, device=torch.device("cpu"), args=None):
+        model.eval()
+        data.setup()
+        dataloader = data.train_dataloader()
         with torch.no_grad():
-            for i, x in tenumerate(data):
+            for i, x in tenumerate(dataloader):
                 model.net(x['IM'].as_tensor())
                 if i >= calib_num:
                     break
