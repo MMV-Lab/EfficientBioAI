@@ -3,7 +3,7 @@ model:
   mmv_im2im:
     task: labelfree
     model_type: FCN
-    config_path: "configs/mmv_im2im/labelfree_3d_inference.yaml"
+    config_path: "configs/mmv_im2im/labelfree_3d_train.yaml"
 data:
   data_path: "./data/mmv_im2im/labelfree/holdout"
   input_size: [1,32,128,128] #should be the same in labelfree_3d_deploy.yaml. channel+ZYX
@@ -13,8 +13,8 @@ data:
     output_names: ['output']
 quantization:
   type: PTQ # could be PTQ or QAT
-  backend: openvino # tensorrt or openvino
-  run_mode: fp32 #int8 or fp32
+  backend: tensorrt # tensorrt or openvino
+  run_mode: int8 #int8 or fp32
   extra_config:
     extra_qconfig_dict: 
       w_observer: EMAQuantileObserver
@@ -38,4 +38,11 @@ quantization:
         - torch.nn.MaxPool3d
       additional_function_type: 
         - torch.cat
-
+# prune:
+#   type: L1NormPruner # could be LevelPruner, L1NormPruner, L2NormPruner, FPGMPruner
+#   config_list:
+#     - sparsity_per_layer: 0.5
+#       op_types: 
+#         - Conv3d
+#         - Linear
+#   customized_replace_func: {}

@@ -3,7 +3,7 @@ model:
   mmv_im2im:
     task: semanticseg
     model_type: FCN
-    config_path: "configs/mmv_im2im/semanticseg_3d_train.yaml"
+    config_path: "/home/ISAS.DE/yu.zhou/EfficientBioAI/configs/mmv_im2im/semanticseg_3d_train.yaml"
 data:
   data_path: "data/mmv_im2im/semanticseg/train"
   input_size: [1,32,128,128] #should be the same in labelfree_3d_deploy.yaml. channel+ZYX
@@ -14,7 +14,7 @@ data:
 
 quantization:
   type: PTQ # could be PTQ or QAT
-  backend: tensorrt # tensorrt or openvino
+  backend: openvino # tensorrt or openvino
   run_mode: int8 #int8 or fp32
   extra_config:
     extra_qconfig_dict: 
@@ -39,11 +39,11 @@ quantization:
         - torch.nn.MaxPool3d
       additional_function_type: 
         - torch.cat
-prune:
-  type: L1NormPruner # could be LevelPruner, L1NormPruner, L2NormPruner, FPGMPruner
-  config_list:
-    - sparsity_per_layer: 0.5
-      op_types: 
-        - Conv3d
-        - Linear
-  customized_replace_func: {}
+# prune:
+#  type: L1NormPruner # could be LevelPruner, L1NormPruner, L2NormPruner, FPGMPruner
+#  config_list:
+#    - sparsity_per_layer: 0.5
+#      op_types: 
+#        - Conv3d
+#        - Linear
+#  customized_replace_func: {}
