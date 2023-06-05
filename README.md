@@ -1,8 +1,13 @@
 # EfficientBioAI
-This package mainly focus on the efficiency of BioImage AI tasks. For the moment we just implemented quantization algorithm.
+This package mainly focus on the efficiency(latency improvement, energy saving...) of BioImage AI tasks. For the moment we implemented quantization and pruning algorithm.
 
 ## Introduction:
-The whole project contains two parts: quantization and inference. In the quantization step, we quantize the pretrained model into int8 precision and transform them to the format suitable to the inference engine. The next step is to run the inference on the inference engine and do the analysis. The inference engine that we choose is `openvino` for intel CPU and `tensorrt` for nvidia GPU.   
+<p align="center">
+  <img src="docs/pipeline.jpg" alt="Overview of the toolbox" width="50%" height="50%">
+</p>
+<p align="center">Fig. 1: Overview of the toolbox.</p>
+
+As illustrated by the figure above, the whole project contains two steps: compression and inference. In the first step, we prune the pretrained model and quantize it into int8 precision and then transform to the format suitable to the inference engine. The next step is to run the inference on the inference engine and do the analysis. The inference engine that we choose is `openvino` for intel CPU and `tensorrt` for nvidia GPU.   
 We support several popular bioimage AI tools like([mmv_im2im](https://github.com/MMV-Lab/mmv_im2im),[cellpose](https://github.com/MouseLand/cellpose)). Also user-defined pytorch models are supported.
  
 ## Installation:
@@ -27,7 +32,7 @@ cd EfficientBioAI
 pip install -e .[cpu/gpu/all] # for intel cpu, nvidia gpu or both
 ```
 
-### docker:(recommended)
+### docker:
 We use different docker images for both cpu and gpu. Assume that you are in the root directory of the project.
 - for CPU:
 ```bash
