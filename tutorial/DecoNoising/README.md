@@ -1,4 +1,8 @@
 # DecoNoising: Improving Blind Spot Denoising for Microscopy
+
+We copied the original [repo](https://github.com/juglab/DecoNoising/tree/master/deconoising) here and add a new jupyter notebook called `Convallaria-Compression.ipynb` to show how to compress the model.
+
+------------------
 Anna S. Goncharova, Alf Honigmann, Florian Jug, and Alexander Krull</br>
 Max Planck Institute of Molecular Cell Biology and Genetics (**[MPI-CBG](https://www.mpi-cbg.de/home/)**) <br>
 Center for Systems Biology (**[CSBD](https://www.csbdresden.de/)**) in Dresden, Germany 

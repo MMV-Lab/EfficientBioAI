@@ -3,16 +3,15 @@ model:
   academic:
     task: segmentation
     model_type: Unet
-    config_path: "./semantic_2d_segmentation.yaml"
+    config_path: None
 data:
-  data_path: "data/mmv_im2im/denoise/test/im"
   input_size: [1,128,128]
   dynamic_batch: [1,4,8] # min, opt, max
   io:
     input_names: ['input']
     output_names: ['output']
 quantization:
-  type: QAT # could be PTQ or QAT
+  type: PTQ # could be PTQ or QAT
   backend: openvino # tensorrt or openvino
   run_mode: int8 #int8 or fp32
   extra_config:
