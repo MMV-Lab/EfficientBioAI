@@ -1,5 +1,6 @@
 experiment/*
-data/*
+**/data/*
+**/exp/*
 .vscode/
 **/__pycache__/
 **/*.pyc

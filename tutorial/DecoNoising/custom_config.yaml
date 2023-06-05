@@ -1,0 +1,35 @@
+model:
+  model_name: academic 
+  academic:
+    task: segmentation
+    model_type: Unet
+    config_path: None
+data:
+  input_size: [1,512,512]
+  dynamic_batch: [1,4,8] # min, opt, max
+  io:
+    input_names: ['input']
+    output_names: ['output']
+quantization:
+  type: PTQ # could be PTQ or QAT
+  backend: openvino # tensorrt or openvino
+  run_mode: int8 #int8 or fp32
+  extra_config:
+    extra_qconfig_dict: 
+      w_observer: EMAQuantileObserver
+      a_observer: EMAQuantileObserver
+      w_fakequantize: FixedFakeQuantize
+      a_fakequantize: FixedFakeQuantize
+      w_qscheme: 
+        bit: 8
+        symmetry: True
+        per_channel: False  # Quantile observer only support in per-tensor scheme
+        pot_scale: False
+      a_qscheme: 
+        bit: 8
+        symmetry: True
+        per_channel: False
+        pot_scale: False
+    extra_quantizer_dict:
+      additional_function_type: 
+        - torch.cat
