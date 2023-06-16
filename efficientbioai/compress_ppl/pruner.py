@@ -8,11 +8,11 @@ from nni.runtime.log import silence_stdout, _root_logger  # noqa E402
 
 silence_stdout()
 _root_logger.handlers = []
-# from nni.compression.pytorch.pruning import L1NormPruner  # noqa E402
-from nni.compression.pytorch import pruning
+
+from nni.compression.pytorch import pruning  # noqa E402
 from nni.compression.pytorch.speedup import ModelSpeedup  # noqa E402
 
-from efficientbioai.utils.logger import logger
+from efficientbioai.utils.logger import logger  # noqa E402
 
 
 class Pruner:
