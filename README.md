@@ -1,7 +1,7 @@
 # EfficientBioAI
 This package mainly focus on the efficiency(latency improvement, energy saving...) of BioImage AI tasks. For the moment we implemented quantization and pruning algorithm.
 
-## Introduction:
+## 1. Introduction:
 <p align="center">
   <img src="docs/pipeline.jpg" alt="Overview of the toolbox" width="50%" height="50%">
 </p>
@@ -10,7 +10,28 @@ This package mainly focus on the efficiency(latency improvement, energy saving..
 As illustrated by the figure above, the whole project contains two steps: compression and inference. In the first step, we prune the pretrained model and quantize it into int8 precision and then transform the format to that is suitable to the inference engine. The next step is to run the inference on the inference engine and do the analysis. The inference engine that we choose is `openvino` for intel CPU and `tensorrt` for nvidia GPU.   
 We support several popular bioimage AI tools like([mmv_im2im](https://github.com/MMV-Lab/mmv_im2im),[cellpose](https://github.com/MouseLand/cellpose)). Also user-defined pytorch models are supported.
  
-## Installation:
+
+## 2. System requirements:
+### Operating System:
+Only linux system (ubuntu 20.04, Debian 10) is tested. We will add support to the Windows system in the near future.
+### Dependencies:
+- pytorch == 1.10
+- [MQBench](https://github.com/ModelTC/MQBench) (for quantization)
+- [nni](https://github.com/microsoft/nni) (for pruning)
+- [cellpose](https://github.com/MouseLand/cellpose)
+- [mmv_im2im](https://github.com/MMV-Lab/mmv_im2im)
+- [pycuda](https://github.com/inducer/pycuda) (required for tensorrt)
+- [tensorrt](https://github.com/NVIDIA/TensorRT) (for gpu inference)
+- [openvino](https://github.com/openvinotoolkit/openvino) (for cpu inference)
+
+The dependencies will be installed automatically.
+
+### Versions:
+The stable version is 0.0.6
+
+## 3. Installation:
+### Typical install time:
+around 5 mins if conda is available.
 ### pip:
 First create a virtual environment using conda:
 ```bash
@@ -50,20 +71,20 @@ bash build_docker.sh # build the docker image
 cd ../..
 bash docker/gpu/run_container.sh #run the docker container
 ```
-## Quick start:
+## 4. Demo:
 
 Suppose you alreadly have the pretrained model and you want to compress it using our toolkit, several things need to be satisfied:
    - The model should be in the `torch.nn.Module` format.
    - The model contains no dynamic flow (see [here](https://pytorch.org/docs/stable/fx.html#dynamic-control-flow) for more details, and [here](docs/dynamic_flow.md) for examples).
    - Avoid explicit self-defined model class member calls outside the class during the quantization process.(see [here](docs/explicit_class_member_call.md) for description and cases).
   
-If satisfied, just check the `Run mode` section to see how to run the code. There is also an [example](tutorial/DecoNoising/) from [ZerocostDL4Mic](https://colab.research.google.com/github/HenriquesLab/ZeroCostDL4Mic/blob/master/Colab_notebooks/Beta%20notebooks/DecoNoising_2D_ZeroCostDL4Mic.ipynb).
+If satisfied, just check the `5. Instructions for use` section to see how to run the code. There is also an [example](tutorial/DecoNoising/) from [ZerocostDL4Mic](https://colab.research.google.com/github/HenriquesLab/ZeroCostDL4Mic/blob/master/Colab_notebooks/Beta%20notebooks/DecoNoising_2D_ZeroCostDL4Mic.ipynb).
 
 If not, check the following examples to see how to get rid of the problems:
    -  correct the dynamic control flow: [description](extra_class_memebers.md)
    -  get rid of the dynamic flows: [description](docs/dynamic_flow.md)
 
-## Run mode:
+## 5. Instructions for use:
 There are two ways to run the code. Using the provided scripts or just using the api. Both requires the config yaml file and you can find an example here: [config file example](tutorial/SemanticSeg/custom_config.yaml).
 ### Use script:
 - compression:
@@ -120,3 +141,7 @@ infer_path = exp_path / "academic_deploy_model.trt"
 quantized_model = create_trt_model(infer_path)
 # Then do the inference as normal
 ```
+### Reproduction instructions
+All the supplenmentary data can be downloaded from [google drive](https://drive.google.com/drive/folders/1v2Hwo1lRh1GurDYeiMLTNSDouFHSOmjo?usp=sharing), which includes all the model checkpoints, data for training and test, files for the experiment. 
+
+So you can use our pretrained model to test the performance of our toolbox on the provided test data for the specific task.
