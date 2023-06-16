@@ -19,7 +19,7 @@ Only linux system (ubuntu 20.04, Debian 10) is tested. We will add support to th
 - [MQBench](https://github.com/ModelTC/MQBench) (for quantization)
 - [nni](https://github.com/microsoft/nni) (for pruning)
 - [cellpose](https://github.com/MouseLand/cellpose)
-- [mmv_im2im](https://github.com/MMV-Lab/mmv_im2im)
+- [mmv_im2im](https://github.com/MMV-Lab/mmv_im2im) == 0.4.0
 - [pycuda](https://github.com/inducer/pycuda) (required for tensorrt)
 - [tensorrt](https://github.com/NVIDIA/TensorRT) (for gpu inference)
 - [openvino](https://github.com/openvinotoolkit/openvino) (for cpu inference)
@@ -40,7 +40,7 @@ conda create -n efficientbioai python=3.8 setuptools=59.5.0
 ```
 Then we need to install the dependencies:
 ```bash
-git clone git@github.com:ModelTC/MQBench.git
+git clone https://github.com/ModelTC/MQBench.git
 cd MQBench
 python setup.py install
 cd ..
@@ -48,9 +48,14 @@ cd ..
 Then install the `efficientbioai` package:
 
 ```bash
-git clone git@github.com:MMV-Lab/EfficientBioAI.git
+git clone https://github.com/MMV-Lab/EfficientBioAI.git
 cd EfficientBioAI
-pip install -e .[cpu/gpu/all] # for intel cpu, nvidia gpu or both
+# for intel cpu
+pip install -e .[cpu] 
+# for nvidia gpu
+pip install -e .[gpu]
+# for both:
+pip install -e .[all]
 ```
 
 ### docker:
