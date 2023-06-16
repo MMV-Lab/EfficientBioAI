@@ -84,6 +84,11 @@ If not, check the following examples to see how to get rid of the problems:
    -  correct the dynamic control flow: [description](extra_class_memebers.md)
    -  get rid of the dynamic flows: [description](docs/dynamic_flow.md)
 
+### expected run time:
+- **Compression**:
+  - **quantization**: PTQ will take several minutes.
+  - **pruning**: pruning itself takes several minutes. Fine-tuning will take longer time based on the iterations and training data size.
+- **Inference**: Latencies can be found in table 1 on our [preprint paper](https://arxiv.org/abs/2306.06152).
 ## 5. Instructions for use:
 There are two ways to run the code. Using the provided scripts or just using the api. Both requires the config yaml file and you can find an example here: [config file example](tutorial/SemanticSeg/custom_config.yaml).
 ### Use script:
