@@ -111,16 +111,15 @@ class Mmv_im2imParser(BaseParser):
         data = get_data_module(self.data_cfg)
         return data
 
-
     @staticmethod
     def fine_tune(model, data, device, args):
         # set up training
-        params = {'accelerator':'gpu', 'max_epochs':10, 'precision':16, 'devices':1}
+        params = {"accelerator": "gpu", "max_epochs": 10, "precision": 16, "devices": 1}
         trainer = pl.Trainer(callbacks=[], **params)
         logger.info("Start fine tuning...")
         trainer.fit(model, data)
         logger.info("Fine tuning finished.")
-        shutil.rmtree('tmp/')
+        shutil.rmtree("tmp/")
         return model.net
 
     @staticmethod
@@ -130,7 +129,7 @@ class Mmv_im2imParser(BaseParser):
         dataloader = data.train_dataloader()
         with torch.no_grad():
             for i, x in tenumerate(dataloader):
-                model.net(x['IM'].as_tensor())
+                model.net(x["IM"].as_tensor())
                 if i >= calib_num:
                     break
         return model.net
