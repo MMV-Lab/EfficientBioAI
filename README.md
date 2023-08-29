@@ -12,8 +12,10 @@ We support several popular bioimage AI tools like([mmv_im2im](https://github.com
  
 
 ## 2. System requirements:
+### Hardware:
+
 ### Operating System:
-Only linux system (ubuntu 20.04, Debian 10) is tested. We will add support to the Windows system in the near future.
+linux system (ubuntu 20.04, Debian 10) and windows 10 are tested. At the moment we cannot support macos.
 ### Dependencies:
 - pytorch == 1.10
 - [MQBench](https://github.com/ModelTC/MQBench) (for quantization)
@@ -31,7 +33,13 @@ The stable version is 0.0.6
 
 ## 3. Installation:
 ### Typical install time:
-around 5 mins if conda is available.
+around 5 mins for linux users and 20 mins for windows users.
+
+### for windows users:
+If you want to use **GPU** inference, several things should be checked:
+1. Make sure the cuda and cudnn are installed properly. cuda 11.3 and cudnn 8.9.0 are tested successfully by the author.
+2. Currently tensorrt cannot be installed from pip in windows system. Users have to install through [zip file](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing-zip). version 8.4.3.1 is tested successfully by the author.
+3. to properly install pycuda, [ms build tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) may be required: 
 ### pip:
 First create a virtual environment using conda:
 ```bash
