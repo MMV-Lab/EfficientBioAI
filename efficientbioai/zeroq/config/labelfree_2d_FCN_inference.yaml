@@ -1,0 +1,40 @@
+mode: inference
+
+data:
+  inference_input:
+    dir: /Users/zhouyu/Project/EfficientBioAI/data/mmv_im2im/labelfree_2d
+    data_type: _IM.tiff  # this will search only files with name *_IM.tiff
+    reader_params:
+      dimension_order_out: "YX"
+      C: 0
+      T: 0
+      Z: 0
+  inference_output:
+    path: /Users/zhouyu/Project/EfficientBioAI/data/mmv_im2im/labelfree_2d_pred
+
+  preprocess:
+    - module_name: monai.transforms
+      func_name: NormalizeIntensity
+    # - module_name: monai.transforms
+    #   func_name: ScaleIntensityRangePercentiles
+    #   params:
+    #     lower: 0.5
+    #     upper: 99.5
+    #     b_min: -1
+    #     b_max: 1
+
+model:
+  framework: FCN
+  net:
+    module_name: mmv_im2im.models.nets.fnet_nn_2d
+    func_name: Net
+    params:
+      depth: 4
+      mult_chan: 32
+  checkpoint: /Users/zhouyu/Project/EfficientBioAI/lightning_logs/version_1/checkpoints/last.ckpt
+  model_extra:
+    sliding_window_params:
+      roi_size: [128, 128]
+      sw_batch_size: 2
+      overlap: 0.2
+      mode: "gaussian"
