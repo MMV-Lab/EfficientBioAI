@@ -51,8 +51,8 @@ class Mmv():
         model_module = import_module(f"mmv_im2im.models.pl_{model_category}")
         my_model_func = getattr(model_module, "Model")
         mmv_model = my_model_func(self.model_cfg, train=False)
-        # pre_train = torch.load(self.model_cfg.checkpoint)
-        # mmv_model.load_state_dict(pre_train["state_dict"])
+        pre_train = torch.load(self.model_cfg.checkpoint)
+        mmv_model.load_state_dict(pre_train["state_dict"])
         # torch.onnx.export(mmv_model.net,torch.randn(1,1,128,128),"./mmv.onnx")
         mmv_model.to(self.device)
         return mmv_model
@@ -155,6 +155,7 @@ class Mmv():
 
     def infer(self):
         self.prepare_data()
+        self.model = self.model.eval()
         use_window_inference = True
         infer_time = AverageMeter()
         with torch.no_grad():
@@ -168,7 +169,7 @@ class Mmv():
                 x = torch.tensor(x.astype(np.float32))
                 if self.pre_process is not None:
                     x = self.pre_process(x)
-                x = x.unsqueeze(0).unsqueeze(0).as_tensor().to(self.device)
+                x = x.unsqueeze(0).as_tensor().to(self.device)
                 # calcuate avg time for the whole image
                 end = time.time()
                 if (
@@ -234,9 +235,12 @@ class Mmv():
                 raise ValueError(f"metric {k} not supported") from e
         # read gt/pred file in order. Suppose the file names are the same.
         gt_dir = self.data_cfg.inference_output.path
-        gt_data_type = self.data_cfg.inference_input.data_type
+        gt_data_type = '.tif'
+        pred_data_type = '_GT.tiff'
         gt_list = generate_test_dataset_dict(gt_dir, gt_data_type)
-        pred_list = self.dataset_list
+        pred_list = generate_test_dataset_dict(
+            self.data_cfg.inference_input.dir, pred_data_type
+        )
         if self.data_cfg.preprocess is not None:
             # load preprocessing transformation
             self.pre_process = parse_monai_ops_vanilla(self.data_cfg.preprocess)

@@ -48,18 +48,20 @@ class output_hook(object):
     def clear(self):
         self.outputs = None
 
-def getDistilData(teacher_model,size):
+def getDistilData(teacher_model,size, device):
     """
 	Generate distilled data according to the BatchNorm statistics in the pretrained single-precision model.
 	Currently only support a single GPU.
 
 	teacher_model: pretrained single-precision model
+    size: the size for the pseudo calibration data
+    device (gpu or cpu): where to run the code.
 	"""
 
     # initialize distilled data with random noise according to the dataset
     gaussian_data = (torch.randint(0,high=255, size=size).float() -
                   127.5) / 5418.75
-
+    gaussian_data = gaussian_data.to(device)
     eps = 1e-6
     # initialize hooks and single-precision model
     hooks, hook_handles, bn_stats, refined_gaussian = [], [], [], []
@@ -88,7 +90,7 @@ def getDistilData(teacher_model,size):
 
     
     # initialize the criterion, optimizer, and scheduler
-    crit = nn.CrossEntropyLoss()
+    crit = nn.CrossEntropyLoss().to(device)
     gaussian_data.requires_grad = True
     params_dict = [{'params': gaussian_data, 'lr': 0.5}]
     optimizer = optim.Adam(params_dict)
@@ -97,10 +99,10 @@ def getDistilData(teacher_model,size):
                                                          verbose=False,
                                                          patience=100)
 
-    input_mean = torch.zeros(1, 1)
-    input_std = torch.ones(1, 1)
+    input_mean = torch.zeros(1, 1).cuda()
+    input_std = torch.ones(1, 1).cuda()
 
-    for it in range(1):
+    for it in range(100):
         teacher_model.get_model().net.zero_grad()
         optimizer.zero_grad()
         for hook in hooks:
@@ -117,19 +119,19 @@ def getDistilData(teacher_model,size):
             bn_mean, bn_std = bn_stat[0], bn_stat[1]
             tmp_mean = torch.mean(tmp_output.view(tmp_output.size(0),
                                                       tmp_output.size(1), -1),
-                                      dim=2)
+                                      dim=2).cuda()
             tmp_std = torch.sqrt(
                     torch.var(tmp_output.view(tmp_output.size(0),
                                               tmp_output.size(1), -1),
-                              dim=2) + eps)
+                              dim=2) + eps).cuda()
             mean_loss += own_loss(bn_mean, tmp_mean)
             std_loss += own_loss(bn_std, tmp_std)
         tmp_mean = torch.mean(gaussian_data.view(gaussian_data.size(0), 1,
                                                      -1),
-                                  dim=2)
+                                  dim=2).cuda()
         tmp_std = torch.sqrt(
                 torch.var(gaussian_data.view(gaussian_data.size(0), 1, -1),
-                          dim=2) + eps)
+                          dim=2) + eps).cuda()
         mean_loss += own_loss(input_mean, tmp_mean)
         std_loss += own_loss(input_std, tmp_std)
         total_loss = mean_loss + std_loss

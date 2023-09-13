@@ -75,11 +75,12 @@ if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True
 
     # Load pretrained model
+    device = torch.device('cuda')
     model = Mmv(mmv_args)
     print('****** Full precision model loaded ******')
 
     # Generate distilled data
-    distil_data = getDistilData(model,args.size)
+    distil_data = getDistilData(model,args.size, device= device)
     print('****** Data loaded ******')
 
     # Quantize single-precision model to 8-bit model
@@ -96,5 +97,5 @@ if __name__ == '__main__':
 
     # Test the final quantized model
     model.get_model().net = quantized_model
-    # model.infer()
-    # model.evaluate(metric=['SSIM'])
+    model.infer()
+    model.evaluate(metric=['SSIM'])
