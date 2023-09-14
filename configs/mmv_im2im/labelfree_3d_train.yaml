@@ -2,7 +2,7 @@ mode: train
 
 data:
   category: "pair"
-  data_path: ./data/mmv_im2im/labelfree/train
+  data_path: data/mmv_im2im/labelfree/train
   dataloader:
     train:
       dataloader_params:
@@ -47,7 +47,7 @@ data:
 
 model:
   framework: FCN
-  checkpoint: /home/ISAS.DE/yu.zhou/EfficientBioAI/model/mmv_im2im/labelfree_3d_pruned.ckpt
+  checkpoint: model/mmv_im2im/labelfree_3d.ckpt
   net:
     module_name: mmv_im2im.models.nets.fnet_nn_3d
     func_name: Net

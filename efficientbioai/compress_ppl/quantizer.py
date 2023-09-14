@@ -10,7 +10,7 @@ from mqbench.prepare_by_platform import BackendType, prepare_by_platform
 from mqbench.utils.state import enable_calibration, enable_quantization
 
 from efficientbioai.utils.logger import logger
-
+from efficientbioai.utils.distill_data import getDistilData
 warnings.filterwarnings("ignore")
 
 _BACKEND = dict(
@@ -53,11 +53,26 @@ class Quantizer:
     def _quantize(
         self,
         data: Any,
+        calibrate: Callable = None,
         fine_tune: Callable = None,
+        backend = None,
+        extra_config = None,
         type: str = "PTQ",
     ):
-        self._get_network()  # get the network to be quantized
+        
         if type.upper() == "PTQ":
+            self._get_network()
+            self.network = prepare_by_platform(
+                self.network, backend, extra_config
+            )  # trace model and add quant nodes for model on backend
+            enable_calibration(
+                self.network
+            )  # turn on calibration, ready for gathering data
+            self._set_network()
+            self.network = calibrate(
+                self.model, data, device=self.device
+            )  # run calibration
+            self._get_network()  # get the network to be quantized
             enable_quantization(
                 self.network
             )  # turn on actually quantization, ready for simulating Backend inference
@@ -65,12 +80,39 @@ class Quantizer:
             assert (
                 fine_tune is not None
             ), "fine_tune function should be provided for QAT!"
+            self._get_network()
+            self.network = prepare_by_platform(
+                self.network, backend, extra_config
+            )  # trace model and add quant nodes for model on backend
+            enable_calibration(
+                self.network
+            )  # turn on calibration, ready for gathering data
+            self._set_network()
+            self.network = calibrate(
+                self.model, data, device=self.device
+            )  # run calibration
+            self._get_network()  # get the network to be quantized
             self.network.train()
             self._set_network()
             fine_tune(self.model, data, device=self.device)
             self.network.eval()
             self._get_network()
             enable_quantization(self.network)
+        elif type.upper() == "ZEROQ":
+            distil_data = getDistilData(self.model.net,[4,1,32,128,128], device= torch.device("cpu"))[0]
+            print("hello!")
+            self._get_network()
+            self.network = prepare_by_platform(
+                self.network, backend, extra_config
+            )  # trace model and add quant nodes for model on backend
+            enable_calibration(
+                self.network
+            )  # turn on calibration, ready for gathering data
+            with torch.no_grad():
+                self.network(distil_data)
+            enable_quantization(
+                self.network
+            )  # turn on actually quantization, ready for simulating Backend inference
         else:
             err_msg = "quantization type not supported!"
             logger.error(err_msg)
@@ -104,7 +146,6 @@ class Quantizer:
         io_names = [*input_names, *output_names]
         dynamic_axes = {k: {0: "batch_size"} for k in io_names}
         backend = _BACKEND[self.qconfig["backend"]]
-        self._get_network()
         if self.qconfig["run_mode"] == "int8":
             # since additional model type can only accept tuple. so we need to convert it to tuple.
             extra_config = {
@@ -122,17 +163,8 @@ class Quantizer:
                     ],
                 },
             }
-            self.network = prepare_by_platform(
-                self.network, backend, extra_config
-            )  # trace model and add quant nodes for model on backend
-            enable_calibration(
-                self.network
-            )  # turn on calibration, ready for gathering data
-            self._set_network()
-            self.network = calibrate(
-                self.model, data, device=self.device
-            )  # run calibration
-            self._quantize(data, fine_tune=fine_tune, type=self.qconfig["type"])
+            
+            self._quantize(data, calibrate= calibrate, fine_tune=fine_tune, backend= backend, extra_config= extra_config, type=self.qconfig["type"])
             extra_kwargs = dict(
                 input_names=input_names,
                 output_names=output_names,
