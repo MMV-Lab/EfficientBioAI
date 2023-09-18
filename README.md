@@ -19,9 +19,9 @@ conda create -n efficientbioai python=3.8 setuptools=59.5.0
 ```
 Then we need to install the dependencies:
 ```bash
-git clone git@github.com:ModelTC/MQBench.git
+git clone https://github.com/ModelTC/MQBench.git
 cd MQBench
-python setup.py install
+pip install -e .
 cd ..
 ```
 Then install the `efficientbioai` package:
@@ -41,6 +41,9 @@ bash install.sh # if not install docker, run this command first
 bash build_docker.sh # build the docker image
 cd ../..
 bash docker/cpu/run_container.sh #run the docker container
+# in the docker container:
+cd EfficientBioAI
+pip install -e .[cpu] #install our package
 ```
 - for GPU:
 ```bash
@@ -49,6 +52,9 @@ bash install.sh # if not install docker, run this command first
 bash build_docker.sh # build the docker image
 cd ../..
 bash docker/gpu/run_container.sh #run the docker container
+# in the docker container:
+cd EfficientBioAI
+pip install -e .[gpu] #install our package
 ```
 ## Quick start:
 

@@ -18,15 +18,16 @@ RUN pip3 install --upgrade pip \
     codecarbon \
     graphviz \
     cmake \
-    onnx
+    onnx \
+    nni
 
-# install mqbench
+# install mqbench, cellpose
 RUN git clone https://github.com/ModelTC/MQBench.git \
     && cd MQBench \
-    && pip3 install -e .
-
-# install cellpose
-RUN git clone https://github.com/MouseLand/cellpose.git \
+    && pip3 install -e . \
+    && cd .. \
+    && git clone https://github.com/audreyeternal/cellpose.git \
     && cd cellpose \
     && pip3 install -e .
+
 

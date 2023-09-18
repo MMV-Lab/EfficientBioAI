@@ -5,6 +5,6 @@ docker run -it \
 --runtime=nvidia \
 --name tensorrt \
 --shm-size=2gb \
--v $(pwd)/:/EfficientBioAI/ \
+-v $(pwd)/:/workspace/EfficientBioAI/ \
 efficient_bio_ai:v1 \
 /bin/bash

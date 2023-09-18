@@ -6,20 +6,19 @@ FROM nvcr.io/nvidia/tensorrt:${version}
 RUN pip3 install --upgrade pip \
     && pip3 install \
     torch==1.10.0+cu113 torchvision==0.11.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html \  
-    && pip3 install \
+    pytorch-lightning==1.8.1 \
     mmv_im2im \
     codecarbon \
-    graphviz
+    graphviz \
+    nni
 
-# comment a bug in pytorch
-
-WORKDIR /tensorrt_docker
-# install mqbench
+# install mqbench, cellpose
 RUN git clone https://github.com/ModelTC/MQBench.git \
     && cd MQBench \
-    && python setup.py install
-
-# install cellpose
-RUN git clone https://github.com/MouseLand/cellpose.git \
+    && python setup.py install \
+    && cd ../ \
+    && git clone https://github.com/audreyeternal/cellpose.git \
     && cd cellpose \
     && pip install -e .
+
+# WORKDIR /EfficientBioAI
