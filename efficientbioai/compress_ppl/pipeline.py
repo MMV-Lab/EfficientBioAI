@@ -98,7 +98,7 @@ class Pipeline:
         """
         if self.backend == "tensorrt":
             try:
-                from onnx2trt import onnx2trt
+                from efficientbioai.onnx2trt import onnx2trt
             except Exception as e:
                 raise ImportError("tensorrt/pycuda not correctly installed!") from e
 

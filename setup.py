@@ -1,4 +1,6 @@
 from setuptools import setup, find_packages
+import sys 
+
 
 with open("README.md") as readme_file:
     readme = readme_file.read()
@@ -11,7 +13,7 @@ requirements = [
     "numpy",
     "codecarbon",  # for measuring energy consumption
     "torch>=1.10, <1.11",
-    "mmv_im2im",
+    "mmv_im2im==0.4.0",
     "cellpose",
     # "cellpose @ git+https://github.com/audreyeternal/cellpose.git", # pypi doesnt allow to install from git
     "nni",  # for pruning,
@@ -33,7 +35,7 @@ opv_requirements = ["openvino", "openvino-dev[onnx,pytorch]"]
 trt_requirements = [
     "pycuda",
     "tensorrt>=8.0, <8.6",
-]
+] if 'linux' in sys.platform else ["pycuda"]
 
 extra_requirements = {
     "cpu": opv_requirements,
