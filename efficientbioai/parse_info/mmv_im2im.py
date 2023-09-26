@@ -114,10 +114,11 @@ class Mmv_im2imParser(BaseParser):
     @staticmethod
     def fine_tune(model, data, device, args):
         # set up training
-        params = {"accelerator": "gpu", "max_epochs": 10, "precision": 16, "devices": 1}
+        device = 'cpu' if device == torch.device('cpu') else 'gpu'
+        params = {"accelerator": device, "max_epochs": 10, "precision": 16, "devices": 1, "limit_val_batches": 0, "detect_anomaly": True} # validation sometimes may cause error
         trainer = pl.Trainer(callbacks=[], **params)
         logger.info("Start fine tuning...")
-        trainer.fit(model, data)
+        trainer.fit(model = model, datamodule = data)
         logger.info("Fine tuning finished.")
         shutil.rmtree("tmp/")
         return model.net
