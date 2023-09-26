@@ -45,29 +45,21 @@ First create a virtual environment using conda:
 ```bash
 conda config --add channels conda-forge
 conda create -n efficientbioai python=3.8 setuptools=59.5.0
+conda activate efficientbioai
 ```
-Then we need to install the dependencies:
-```bash
-git clone https://github.com/ModelTC/MQBench.git
-cd MQBench
-pip install -e .
-cd ..
-```
-Then install the `efficientbioai` package:
-
+Then we can install the package:
 ```bash
 git clone https://github.com/MMV-Lab/EfficientBioAI.git
-cd EfficientBioAI
-# for intel cpu
-pip install -e .[cpu] 
-# for nvidia gpu
-pip install -e .[gpu]
-# for both:
-pip install -e .[all]
+# for cpu: (intel, AMD that supports AVX-512)
+./EfficientBioAI/installation/setup.sh cpu
+# for gpu: (nvidia)
+./EfficientBioAI/installation/setup.sh gpu
+# for all:
+./EfficientBioAI/installation/setup.sh all
 ```
-
+For Windows users, please substitute `./EfficientBioAI/installation/setup.sh` with `.\EfficientBioAI\installation\setup.bat`
 ### docker:
-We use different docker images for both cpu and gpu. Assume that you are in the root directory of the project.
+We use different docker images for both cpu and gpu. Assume that you are in the root directory of the project. 
 - for CPU:
 ```bash
 cd docker/cpu
@@ -97,7 +89,7 @@ Suppose you alreadly have the pretrained model and you want to compress it using
    - The model contains no dynamic flow (see [here](https://pytorch.org/docs/stable/fx.html#dynamic-control-flow) for more details, and [here](docs/dynamic_flow.md) for examples).
    - Avoid explicit self-defined model class member calls outside the class during the quantization process.(see [here](docs/explicit_class_member_call.md) for description and cases).
   
-If satisfied, just check the `5. Instructions for use` section to see how to run the code. There is also an [example](tutorial/DecoNoising/) from [ZerocostDL4Mic](https://colab.research.google.com/github/HenriquesLab/ZeroCostDL4Mic/blob/master/Colab_notebooks/Beta%20notebooks/DecoNoising_2D_ZeroCostDL4Mic.ipynb).
+If satisfied, just check the `5. Instructions for use` section to see how to run the code. There is also an [example](tutorial/DecoNoising/README.md) from [ZerocostDL4Mic](https://colab.research.google.com/github/HenriquesLab/ZeroCostDL4Mic/blob/master/Colab_notebooks/Beta%20notebooks/DecoNoising_2D_ZeroCostDL4Mic.ipynb).
 
 If not, check the following examples to see how to get rid of the problems:
    -  correct the dynamic control flow: [description](extra_class_memebers.md)

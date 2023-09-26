@@ -10,13 +10,10 @@ setup_requirements = [
 ]
 
 requirements = [
-    "numpy",
+    "numpy>=1.22, <1.24", # for some np.float syntax in mmv package that are deprecated since numpy 1.24
     "codecarbon",  # for measuring energy consumption
     "torch>=1.10, <1.11",
     "mmv_im2im==0.4.0",
-    "cellpose",
-    # "cellpose @ git+https://github.com/audreyeternal/cellpose.git", # pypi doesnt allow to install from git
-    "nni",  # for pruning,
     "tensorboard",  # for visualization
 ]
 
