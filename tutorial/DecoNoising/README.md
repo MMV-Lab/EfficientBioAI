@@ -1,6 +1,11 @@
 # DecoNoising: Improving Blind Spot Denoising for Microscopy
 
+
+------------------
 We copied the original [repo](https://github.com/juglab/DecoNoising/tree/master/deconoising) here and add a new jupyter notebook called `Convallaria-Compression.ipynb` to show how to compress the model.
+To do the tutorial, you need to:
+-  first train the model using `Convallaria-Training.ipynb`
+-  then compress the model and do the prediction with `Convallaria-Compression.ipynb`
 
 ------------------
 Anna S. Goncharova, Alf Honigmann, Florian Jug, and Alexander Krull</br>

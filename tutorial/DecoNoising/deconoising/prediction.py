@@ -241,7 +241,6 @@ def tiledPredict_reflect(im, net, ps, overlap, device, outScaling=10.0):
             xmin_ = min(im.shape[1], xmax) - ps
             lastPatchShiftY = ymin - ymin_
             lastPatchShiftX = xmin - xmin_
-            print(ymin_, ymax, xmin_, xmax)
             a, b = predict(
                 net, im[ymin_:ymax, xmin_:xmax], device, outScaling=outScaling
             )

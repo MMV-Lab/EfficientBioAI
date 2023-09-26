@@ -20,7 +20,6 @@ def imgToTensor(img):
     """
     Convert a 2D single channel image to a pytorch tensor.
     """
-    print(img.shape)
     img.shape = (img.shape[0], img.shape[1], 1)
     imgOut = torchvision.transforms.functional.to_tensor(img.astype(np.float32))
     return imgOut
