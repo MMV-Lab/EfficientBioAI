@@ -156,12 +156,15 @@ class Pipeline:
             ) as stream:
                 yaml.dump(self.config_dict, stream)
             for ext in ["bin", "mapping", "xml"]:
-                shutil.move(
-                    os.path.join(os.getcwd(), f"{self.model_name}_deploy_model.{ext}"),
-                    os.path.join(
-                        self.output_path, f"{self.model_name}_deploy_model.{ext}"
-                    ),
-                )
+                try:
+                    shutil.move(
+                        os.path.join(os.getcwd(), f"{self.model_name}_deploy_model.{ext}"),
+                        os.path.join(
+                            self.output_path, f"{self.model_name}_deploy_model.{ext}"
+                        ),
+                    )
+                except: # sometimes there is no mapping file.
+                    continue
             logger.info("transform done!")
 
         else:
