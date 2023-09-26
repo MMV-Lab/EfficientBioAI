@@ -1,6 +1,8 @@
 experiment/*
 **/data/*
 **/exp/*
+**/tmp/*
+**/lightning_logs/*
 .vscode/
 **/__pycache__/
 **/*.pyc
