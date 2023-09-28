@@ -12,8 +12,10 @@ setup_requirements = [
 requirements = [
     "numpy>=1.22, <1.24", # for some np.float syntax in mmv package that are deprecated since numpy 1.24
     "codecarbon",  # for measuring energy consumption
-    "torch>=1.10, <1.11",
-    "mmv_im2im==0.4.0",
+    "torch==1.10.0", # required by mqbench 
+    "aicsimageio", # install it before mmv_im2im to avoid github action error
+    "pytorch-lightning<=1.9.5" # should be less than 2.0 to satisfy mmv_im2im 0.4.0's requirement.
+    "mmv_im2im==0.4.0", # fix to 0.4.0 at the moment. 
     "tensorboard",  # for visualization
 ]
 
