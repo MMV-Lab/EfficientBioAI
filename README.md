@@ -1,5 +1,5 @@
 # EfficientBioAI
-This package mainly focus on the efficiency(latency improvement, energy saving...) of BioImage AI tasks. For the moment we implemented quantization and pruning algorithm.
+This package mainly focus on the efficiency (latency improvement, energy saving...) of BioImage AI tasks. For the moment we implemented quantization and pruning algorithm.
 
 ## 1. Introduction:
 <p align="center">
@@ -59,31 +59,28 @@ git clone https://github.com/MMV-Lab/EfficientBioAI.git
 ```
 For Windows users, please substitute `./EfficientBioAI/installation/setup.sh` with `.\EfficientBioAI\installation\setup.bat`
 ### docker:
-We use different docker images for both cpu and gpu. Assume that you are in the root directory of the project. 
+We use different docker images for both CPU and GPU. To install docker, please check: [desktop](https://www.docker.com/get-started/), [command line](/docker/cpu/install.sh). GPU version also requires [nvidia-docker](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installation) (or from [here](/docker/gpu/install.sh))
+ to communicate to GPU hardware. 
+
+We recommend users to use VSCode Docker plugin to run our tutorial.
 - for CPU:
 ```bash
-cd docker/cpu
-bash install.sh # if not install docker, run this command first
-bash build_docker.sh # build the docker image
-cd ../..
-bash docker/cpu/run_container.sh #run the docker container
-# in the docker container:
-cd EfficientBioAI
-pip install -e .[cpu] #install our package
+# 1. Pull the image
+git pull mmvlab/efficientbioai:cpu
+# 2. Start the container. Your current folder is mounted to /workspace in the container.
+docker run -it --rm --name efficientbioai_cpu --shm-size=2gb -v ./:/workspace/ mmvlab/efficientbioai:cpu /bin/bash
 ```
-- for GPU:
+- for CPU+GPU:
 ```bash
-cd docker/gpu
-bash install.sh # if not install docker, run this command first
-bash build_docker.sh # build the docker image
-cd ../..
-bash docker/gpu/run_container.sh #run the docker container
-# in the docker container:
-cd EfficientBioAI
-pip install -e .[gpu] #install our package
+# 1. Pull the image
+git pull mmvlab/efficientbioai:all
+# 2. Start the container. Your current folder is mounted to /workspace/tmp in the container.
+docker run -it --rm --gpus all --name efficientbioai_all --shm-size=2gb -v ./:/workspace/tmp mmvlab/efficientbioai:all /bin/bash
 ```
-## 4. Demo:
 
+## 4. Quick Start:
+There is an [example](tutorial/DecoNoising/README.md) from [ZerocostDL4Mic](https://colab.research.google.com/github/HenriquesLab/ZeroCostDL4Mic/blob/master/Colab_notebooks/Beta%20notebooks/DecoNoising_2D_ZeroCostDL4Mic.ipynb).
+## 5. Tricks:
 Suppose you alreadly have the pretrained model and you want to compress it using our toolkit, several things need to be satisfied:
    - The model should be in the `torch.nn.Module` format.
    - The model contains no dynamic flow (see [here](https://pytorch.org/docs/stable/fx.html#dynamic-control-flow) for more details, and [here](docs/dynamic_flow.md) for examples).
@@ -100,7 +97,7 @@ If not, check the following examples to see how to get rid of the problems:
   - **quantization**: PTQ will take several minutes.
   - **pruning**: pruning itself takes several minutes. Fine-tuning will take longer time based on the iterations and training data size.
 - **Inference**: Latencies can be found in table 1 on our [preprint paper](https://arxiv.org/abs/2306.06152).
-## 5. Instructions for use:
+## 6. Instructions for use:
 There are two ways to run the code. Using the provided scripts or just using the api. Both requires the config yaml file and you can find an example here: [config file example](tutorial/SemanticSeg/custom_config.yaml).
 ### Use script:
 - compression:
