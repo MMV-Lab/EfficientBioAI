@@ -50,6 +50,8 @@ conda activate efficientbioai
 Then we can install the package:
 ```bash
 git clone https://github.com/MMV-Lab/EfficientBioAI.git
+# optional: give users the right to read/write/execute the setup script.
+chmod 777 ./EfficientBioAI/installation/setup.sh
 # for cpu: (intel, AMD that supports AVX-512)
 ./EfficientBioAI/installation/setup.sh cpu
 # for gpu: (nvidia)

@@ -1,7 +1,7 @@
 @echo off
 
 REM Install mqbench because it cannot be installed from pypi
-pip install git+https://github.com/ModelTC/MQBench.git
+pip install git+https://github.com/audreyeternal/MQBench.git
 
 REM Install development head of efficientbioai
 cd EfficientBioAI
