@@ -41,6 +41,8 @@ If you want to use **GPU** inference, several things should be checked:
 2. Currently tensorrt cannot be installed from pip in windows system. Users have to install through [zip file](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing-zip). version 8.4.3.1 is tested successfully by the author.
 3. to properly install pycuda, [ms build tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) may be required. 
 ### pip:
+Installation videos are here: [Linux](https://vimeo.com/878650785?share=copy#t=0), [Windows](https://vimeo.com/878674288/70320eaffb?share=copy)
+
 First create a virtual environment using conda:
 ```bash
 conda config --add channels conda-forge
@@ -65,6 +67,8 @@ We use different docker images for both CPU and GPU. To install docker, please c
  to communicate to GPU hardware. 
 
 We recommend users to use VSCode Docker plugin to run our tutorial.
+
+The installation and application video is [here](https://vimeo.com/878637947?share=copy).
 - for CPU:
 ```bash
 # 1. Pull the image
