@@ -12,7 +12,8 @@ We support several popular bioimage AI tools like ([mmv_im2im](https://github.co
 
 ## 2. System requirements:
 ### Hardware:
-
+- CPU inference: Processors with the Intel AVX-512 Support (check [here](https://en.wikipedia.org/wiki/AVX-512#CPUs_with_AVX-512), Normally Xeon® Processor Family)
+- GPU inference: Nvidia GPU with int8 tensor core. (check [here](https://docs.nvidia.com/deeplearning/tensorrt/support-matrix/index.html#hardware-precision-matrix))
 ### Operating System:
 Linux system (Ubuntu 20.04, Debian 10) and Windows 10 are tested. At the moment, we cannot support MacOS.
 
