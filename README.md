@@ -76,14 +76,14 @@ Here is the video demonstrating how to install and how to use our tool via Docke
 - for CPU:
 ```bash
 # 1. Pull the image
-git pull mmvlab/efficientbioai:cpu
+docker pull mmvlab/efficientbioai:cpu
 # 2. Start the container. Your current folder is mounted to /workspace in the container.
 docker run -it --rm --name efficientbioai_cpu --shm-size=2gb -v ./:/workspace/ mmvlab/efficientbioai:cpu /bin/bash
 ```
 - for CPU+GPU:
 ```bash
 # 1. Pull the image
-git pull mmvlab/efficientbioai:all
+docker pull mmvlab/efficientbioai:all
 # 2. Start the container. Your current folder is mounted to /workspace/tmp in the container.
 docker run -it --rm --gpus all --name efficientbioai_all --shm-size=2gb -v ./:/workspace/tmp mmvlab/efficientbioai:all /bin/bash
 ```
