@@ -69,7 +69,7 @@ For Windows users, please substitute `./EfficientBioAI/installation/setup.sh` wi
 
 We use different Docker images for CPU and GPU. To install Docker, please check: [desktop](https://www.docker.com/get-started/), [command line](/docker/cpu/install.sh). GPU version also requires [nvidia-docker](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installation) (or from [here](/docker/gpu/install.sh)) to communicate to GPU hardware. 
 
-We recommend users to use VSCode Docker plugin to run our tutorial.
+We recommend users to use VSCode [Docker](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker) + [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) plugin to run our tutorial.
 
 Here is the video demonstrating how to install and how to use our tool via Docker: [video tutorials for Docker versions](https://vimeo.com/878637947?share=copy).
 
@@ -77,15 +77,15 @@ Here is the video demonstrating how to install and how to use our tool via Docke
 ```bash
 # 1. Pull the image
 docker pull mmvlab/efficientbioai:cpu
-# 2. Start the container. Your current folder is mounted to /workspace in the container.
-docker run -it --rm --name efficientbioai_cpu --shm-size=2gb -v ./:/workspace/ mmvlab/efficientbioai:cpu /bin/bash
+# 2. Start the container. Your current folder is mounted to /mount in the container. The EfficientBioAI location is /EfficientBioAI 
+docker run -it --rm --name efficientbioai_cpu --shm-size=2gb -v $(pwd):/mount -w /mount mmvlab/efficientbioai:cpu /bin/bash
 ```
 - for CPU+GPU:
 ```bash
 # 1. Pull the image
 docker pull mmvlab/efficientbioai:all
-# 2. Start the container. Your current folder is mounted to /workspace/tmp in the container.
-docker run -it --rm --gpus all --name efficientbioai_all --shm-size=2gb -v ./:/workspace/tmp mmvlab/efficientbioai:all /bin/bash
+# 2. Start the container. Your current folder is mounted to /mount in the container. The EfficientBioAI location is /workspace/EfficientBioAI 
+docker run -it --rm --gpus all --name efficientbioai_all --shm-size=2gb -v $(pwd):/mount -w /mount mmvlab/efficientbioai:all /bin/bash
 ```
 
 ## 4. Quick Start:
