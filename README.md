@@ -167,4 +167,4 @@ quantized_model = create_trt_model(infer_path)
 # Then do the inference as normal
 ```
 ### Reproduction instructions
-All the supplenmentary data can be downloaded from [anonymous] (under review; upon paper acceptance, the data will be released on Zenodo), which includes all the model checkpoints, data for training and test, files for the experiment. So you can use our pretrained model to test the performance of our toolbox on the provided test data for the specific task.
+All the supplenmentary data can be downloaded from [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10136623.svg)](https://doi.org/10.5281/zenodo.10136623), which includes all the model checkpoints, data for training and test, files for the experiment. So you can use our pretrained model to test the performance of our toolbox on the provided test data for the specific task.
